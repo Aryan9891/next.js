@@ -6,6 +6,10 @@ import {
   MutableRequestCookiesAdapter,
 } from './request-cookies'
 
+type GlobalWithAsyncLocalStorage = typeof globalThis & {
+  AsyncLocalStorage?: unknown
+}
+
 describe('RequestCookiesAdapter', () => {
   it('should be able to create a new instance from a RequestCookies', () => {
     const headers = new Headers({ cookie: 'foo=bar; bar=foo' })
@@ -18,13 +22,11 @@ describe('RequestCookiesAdapter', () => {
     expect(sealed.get('bar')).toEqual({ name: 'bar', value: 'foo' })
 
     // These methods are not available on the sealed instance
-    expect(() => (sealed as any).set('foo', 'bar2')).toThrow(
-      ReadonlyRequestCookiesError
-    )
-    expect(() => (sealed as any).delete('foo')).toThrow(
-      ReadonlyRequestCookiesError
-    )
-    expect(() => (sealed as any).clear()).toThrow(ReadonlyRequestCookiesError)
+    expect(() => sealed.set('foo', 'bar2')).toThrow(ReadonlyRequestCookiesError)
+    expect(() => sealed.delete('foo')).toThrow(ReadonlyRequestCookiesError)
+    expect(() =>
+      (sealed as typeof sealed & Pick<RequestCookies, 'clear'>).clear()
+    ).toThrow(ReadonlyRequestCookiesError)
 
     // Ensure nothing was actually changed.
     expect(sealed.get('foo')).toEqual({ name: 'foo', value: 'bar' })
@@ -41,13 +43,11 @@ describe('RequestCookiesAdapter', () => {
     expect(sealed.get('bar')).toEqual(undefined)
 
     // These methods are not available on the sealed instance
-    expect(() => (sealed as any).set('foo', 'bar2')).toThrow(
-      ReadonlyRequestCookiesError
-    )
-    expect(() => (sealed as any).delete('foo')).toThrow(
-      ReadonlyRequestCookiesError
-    )
-    expect(() => (sealed as any).clear()).toThrow(ReadonlyRequestCookiesError)
+    expect(() => sealed.set('foo', 'bar2')).toThrow(ReadonlyRequestCookiesError)
+    expect(() => sealed.delete('foo')).toThrow(ReadonlyRequestCookiesError)
+    expect(() =>
+      (sealed as typeof sealed & Pick<RequestCookies, 'clear'>).clear()
+    ).toThrow(ReadonlyRequestCookiesError)
 
     // Ensure nothing was actually changed.
     expect(sealed.get('foo')).toEqual(undefined)
@@ -107,7 +107,7 @@ describe('wrapWithMutableAccessCheck', () => {
   let createCookiesWithMutableAccessCheck: typeof import('./request-cookies').createCookiesWithMutableAccessCheck
 
   beforeAll(() => {
-    ;(globalThis as any).AsyncLocalStorage ??= (
+    ;(globalThis as GlobalWithAsyncLocalStorage).AsyncLocalStorage ??= (
       require('node:async_hooks') as typeof import('node:async_hooks')
     ).AsyncLocalStorage
     jest.resetModules()

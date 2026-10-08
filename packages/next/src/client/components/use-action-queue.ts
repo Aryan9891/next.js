@@ -56,7 +56,7 @@ const __DEV__ = process.env.NODE_ENV !== 'production'
 const promisesWithDebugInfo: WeakMap<
   Promise<AppRouterState>,
   Promise<AppRouterState> & { _debugInfo?: Array<unknown> }
-> = __DEV__ ? new WeakMap() : (null as any)
+> | null = __DEV__ ? new WeakMap() : null
 
 export function useActionQueue(
   actionQueue: AppRouterActionQueue
@@ -116,7 +116,7 @@ export function useActionQueue(
     if (isThenable(state)) {
       // useMemo can't be used to cache a Promise since the memoized value is thrown
       // away when we suspend. So we use a WeakMap to cache the Promise with debug info.
-      let promiseWithDebugInfo = promisesWithDebugInfo.get(state)
+      let promiseWithDebugInfo = promisesWithDebugInfo!.get(state)
       if (promiseWithDebugInfo === undefined) {
         const debugInfo: Array<unknown> = []
         promiseWithDebugInfo = Promise.resolve(state).then((asyncState) => {
@@ -127,7 +127,7 @@ export function useActionQueue(
         }) as Promise<AppRouterState> & { _debugInfo?: Array<unknown> }
         promiseWithDebugInfo._debugInfo = debugInfo
 
-        promisesWithDebugInfo.set(state, promiseWithDebugInfo)
+        promisesWithDebugInfo!.set(state, promiseWithDebugInfo)
       }
 
       return promiseWithDebugInfo

@@ -143,6 +143,18 @@ let originalProcessPrependOnceListener: typeof process.prependOnceListener
 let originalProcessRemoveAllListeners: typeof process.removeAllListeners
 let originalProcessListeners: typeof process.listeners
 
+// `addListener`, `prependListener`, `prependOnceListener` and `listeners` lack a
+// catch-all `string | symbol` overload in @types/node, unlike `on`/`off`.
+type RawAddListenerMethod = (
+  this: NodeJS.Process,
+  event: string | symbol,
+  listener: (...args: any[]) => void
+) => NodeJS.Process
+type RawListenersMethod = (
+  this: NodeJS.Process,
+  event: string | symbol
+) => Function[]
+
 type UnderlyingMethod =
   | typeof originalProcessAddListener
   | typeof originalProcessRemoveListener
@@ -180,7 +192,7 @@ function patchWithoutReentrancy<T extends UnderlyingMethod>(
       } finally {
         bypassPatch = previousBypassPatch
       }
-    } as any,
+    } as T,
   }[original.name]
 
   // Preserve the original toString behavior
@@ -248,9 +260,9 @@ function installUnhandledRejectionFilter(): void {
         )
         // We add the listener to a dummy event in case it throws. We don't catch it intentionally
         try {
-          originalProcessAddListener.call(
+          ;(originalProcessAddListener as RawAddListenerMethod).call(
             process,
-            MACGUFFIN_EVENT as any,
+            MACGUFFIN_EVENT,
             listener
           )
         } finally {
@@ -263,7 +275,11 @@ function installUnhandledRejectionFilter(): void {
         return process
       }
       // For other events, use the original method
-      return originalProcessAddListener.call(process, event as any, listener)
+      return (originalProcessAddListener as RawAddListenerMethod).call(
+        process,
+        event,
+        listener
+      )
     } as typeof process.addListener
   )
 
@@ -289,11 +305,7 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
           `Removing 'unhandledRejection' listener with name \`${listener.name}\`.`
         )
         // We remove the listener on a dummy event in case it throws. We don't catch it intentionally
-        originalProcessRemoveListener.call(
-          process,
-          MACGUFFIN_EVENT as any,
-          listener
-        )
+        originalProcessRemoveListener.call(process, MACGUFFIN_EVENT, listener)
         const index = underlyingListeners.lastIndexOf(listener)
         if (index > -1) {
           debug?.(`listener found index ${index} and removed.`)
@@ -323,7 +335,7 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
         )
         // We add the listener to a dummy event in case it throws. We don't catch it intentionally
         try {
-          originalProcessOn.call(process, MACGUFFIN_EVENT as any, listener)
+          originalProcessOn.call(process, MACGUFFIN_EVENT, listener)
         } finally {
           // We clean up the added event
           originalProcessRemoveAllListeners.call(process, MACGUFFIN_EVENT)
@@ -364,7 +376,7 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
           `Removing 'unhandledRejection' listener with name \`${listener.name}\`.`
         )
         // We remove the listener on a dummy event in case it throws. We don't catch it intentionally
-        originalProcessOff.call(process, MACGUFFIN_EVENT as any, listener)
+        originalProcessOff.call(process, MACGUFFIN_EVENT, listener)
         const index = underlyingListeners.lastIndexOf(listener)
         if (index > -1) {
           debug?.(`listener found index ${index} and removed.`)
@@ -390,9 +402,9 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
         )
         // We add the listener to a dummy event in case it throws. We don't catch it intentionally
         try {
-          originalProcessPrependListener.call(
+          ;(originalProcessPrependListener as RawAddListenerMethod).call(
             process,
-            MACGUFFIN_EVENT as any,
+            MACGUFFIN_EVENT,
             listener
           )
         } finally {
@@ -408,9 +420,9 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
         return process
       }
       // For other events, use the original method
-      return originalProcessPrependListener.call(
+      return (originalProcessPrependListener as RawAddListenerMethod).call(
         process,
-        event as any,
+        event,
         listener
       )
     } as typeof process.prependListener
@@ -427,7 +439,7 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
       )
       // We add the listener to a dummy event in case it throws. We don't catch it intentionally
       try {
-        originalProcessOnce.call(process, MACGUFFIN_EVENT as any, listener)
+        originalProcessOnce.call(process, MACGUFFIN_EVENT, listener)
       } finally {
         // We clean up the added event
         originalProcessRemoveAllListeners.call(process, MACGUFFIN_EVENT)
@@ -453,9 +465,9 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
         )
         // We add the listener to a dummy event in case it throws. We don't catch it intentionally
         try {
-          originalProcessPrependOnceListener.call(
+          ;(originalProcessPrependOnceListener as RawAddListenerMethod).call(
             process,
-            MACGUFFIN_EVENT as any,
+            MACGUFFIN_EVENT,
             listener
           )
         } finally {
@@ -474,9 +486,9 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
         return process
       }
       // For other events, use the original method
-      return originalProcessPrependOnceListener.call(
+      return (originalProcessPrependOnceListener as RawAddListenerMethod).call(
         process,
-        event as any,
+        event,
         listener
       )
     } as typeof process.prependOnceListener
@@ -532,7 +544,10 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
         debugWithTrace?.(`Retrieving all 'unhandledRejection' listeners.`)
         return [filteringUnhandledRejectionHandler, ...underlyingListeners]
       }
-      return originalProcessListeners.call(process, event as any)
+      return (originalProcessListeners as RawListenersMethod).call(
+        process,
+        event
+      )
     } as typeof process.listeners
   )
 

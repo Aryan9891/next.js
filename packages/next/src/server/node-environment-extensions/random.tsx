@@ -13,7 +13,10 @@ try {
   const _random = Math.random
   Math.random = function random() {
     io(expression, 'random')
-    return _random.apply(null, arguments as any)
+    return _random.apply(
+      null,
+      arguments as unknown as Parameters<typeof _random>
+    )
 
     // We bind here to alter the `toString` printing to match `Math.random`'s native `toString`.
     // eslint-disable-next-line no-extra-bind

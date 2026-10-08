@@ -1780,26 +1780,25 @@ export class NestedMiddlewareError extends Error {
 
 export { getSupportedBrowsers } from './get-supported-browsers'
 
+// The layer groups are arrays of literal layer names, so `includes` on them
+// wouldn't accept an arbitrary `WebpackLayerName` without widening.
+function inLayerGroup(
+  group: readonly WebpackLayerName[],
+  layer: WebpackLayerName
+): boolean {
+  return group.includes(layer)
+}
+
 export function shouldUseReactServerCondition(
   layer: WebpackLayerName | null | undefined
 ): boolean {
-  return Boolean(
-    layer &&
-      (WEBPACK_LAYERS.GROUP.serverOnly as readonly WebpackLayerName[]).includes(
-        layer
-      )
-  )
+  return Boolean(layer && inLayerGroup(WEBPACK_LAYERS.GROUP.serverOnly, layer))
 }
 
 export function isWebpackClientOnlyLayer(
   layer: WebpackLayerName | null | undefined
 ): boolean {
-  return Boolean(
-    layer &&
-      (WEBPACK_LAYERS.GROUP.clientOnly as readonly WebpackLayerName[]).includes(
-        layer
-      )
-  )
+  return Boolean(layer && inLayerGroup(WEBPACK_LAYERS.GROUP.clientOnly, layer))
 }
 
 export function isWebpackDefaultLayer(
@@ -1817,23 +1816,13 @@ export function isWebpackDefaultLayer(
 export function isWebpackBundledLayer(
   layer: WebpackLayerName | null | undefined
 ): boolean {
-  return Boolean(
-    layer &&
-      (WEBPACK_LAYERS.GROUP.bundled as readonly WebpackLayerName[]).includes(
-        layer
-      )
-  )
+  return Boolean(layer && inLayerGroup(WEBPACK_LAYERS.GROUP.bundled, layer))
 }
 
 export function isWebpackAppPagesLayer(
   layer: WebpackLayerName | null | undefined
 ): boolean {
-  return Boolean(
-    layer &&
-      (WEBPACK_LAYERS.GROUP.appPages as readonly WebpackLayerName[]).includes(
-        layer
-      )
-  )
+  return Boolean(layer && inLayerGroup(WEBPACK_LAYERS.GROUP.appPages, layer))
 }
 
 export function collectMeta({

@@ -558,13 +558,14 @@ export function onDemandEntryHandler({
   appDir?: string
 }) {
   const hasAppDir = !!appDir
-  let curInvalidator = getInvalidator(multiCompiler.outputPath)
+  let maybeInvalidator = getInvalidator(multiCompiler.outputPath)
   const curEntries = getEntries(multiCompiler.outputPath)
 
-  if (!curInvalidator) {
-    curInvalidator = new Invalidator(multiCompiler)
-    invalidators.set(multiCompiler.outputPath, curInvalidator)
+  if (!maybeInvalidator) {
+    maybeInvalidator = new Invalidator(multiCompiler)
+    invalidators.set(multiCompiler.outputPath, maybeInvalidator)
   }
+  const curInvalidator = maybeInvalidator
 
   // Deferred entries state management
   const deferredEntriesConfig = nextConfig.experimental.deferredEntries
@@ -999,7 +1000,7 @@ export function onDemandEntryHandler({
 
                 // If the invalidation also triggers a rebuild, we need to
                 // wait for that additional build to prevent race conditions.
-                const needsRebuild = curInvalidator!.willRebuild(compilerKey)
+                const needsRebuild = curInvalidator.willRebuild(compilerKey)
                 if (needsRebuild) {
                   doneCallbacks.once(entryKey, (rebuildErr: Error) => {
                     if (rebuildErr) {
@@ -1015,7 +1016,7 @@ export function onDemandEntryHandler({
           })
         )
 
-        curInvalidator!.invalidate([...added.keys()])
+        curInvalidator.invalidate([...added.keys()])
         await invalidatePromise
       }
     } finally {

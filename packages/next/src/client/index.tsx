@@ -284,7 +284,7 @@ export async function initialize(opts: { devClient?: any } = {}): Promise<{
     window.__NEXT_P.map((p) => setTimeout(() => register(p), 0))
   }
   window.__NEXT_P = []
-  ;(window.__NEXT_P as any).push = register
+  ;(window.__NEXT_P as { push: RegisterFn }).push = register
 
   headManager = initHeadManager()
   headManager.getIsSsr = () => {

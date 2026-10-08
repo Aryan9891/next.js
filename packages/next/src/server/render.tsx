@@ -1408,13 +1408,13 @@ export async function renderToHTMLImpl(
 
     let content: string | null
     if (hasDocumentGetInitialProps) {
-      documentInitialPropsRes = await loadDocumentInitialProps(renderShell)
-      if (documentInitialPropsRes === null) {
+      const loadedDocumentInitialProps =
+        await loadDocumentInitialProps(renderShell)
+      documentInitialPropsRes = loadedDocumentInitialProps
+      if (loadedDocumentInitialProps === null) {
         content = null
       } else {
-        const { docProps } = documentInitialPropsRes as {
-          docProps: DocumentInitialProps
-        }
+        const { docProps } = loadedDocumentInitialProps
         content = docProps.html
       }
     } else {

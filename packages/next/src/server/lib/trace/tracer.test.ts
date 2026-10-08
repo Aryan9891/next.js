@@ -35,6 +35,10 @@ import {
 } from './constants'
 import { SpanKind, SpanStatusCode, getTracer } from './tracer'
 
+type GlobalWithAsyncLocalStorage = typeof globalThis & {
+  AsyncLocalStorage?: unknown
+}
+
 const customContextKey = createContextKey('next.tracer.test.custom-context')
 const originalRequestInsights = process.env.__NEXT_REQUEST_INSIGHTS
 const originalDevServer = process.env.__NEXT_DEV_SERVER
@@ -730,14 +734,17 @@ describe('local span recording', () => {
 
   it('groups local spans by existing async storage without adding extra attributes', () => {
     jest.isolateModules(() => {
-      const previousAsyncLocalStorage = (globalThis as any).AsyncLocalStorage
+      const previousAsyncLocalStorage = (
+        globalThis as GlobalWithAsyncLocalStorage
+      ).AsyncLocalStorage
       let setIsolatedSpanRecorderForTest:
         | typeof setSpanRecorderForTest
         | undefined
       try {
         const { AsyncLocalStorage } =
           require('node:async_hooks') as typeof import('node:async_hooks')
-        ;(globalThis as any).AsyncLocalStorage = AsyncLocalStorage
+        ;(globalThis as GlobalWithAsyncLocalStorage).AsyncLocalStorage =
+          AsyncLocalStorage
 
         const { workAsyncStorage } =
           require('../../app-render/work-async-storage.external') as typeof import('../../app-render/work-async-storage.external')
@@ -819,9 +826,10 @@ describe('local span recording', () => {
       } finally {
         setIsolatedSpanRecorderForTest?.(undefined)
         if (previousAsyncLocalStorage === undefined) {
-          delete (globalThis as any).AsyncLocalStorage
+          delete (globalThis as GlobalWithAsyncLocalStorage).AsyncLocalStorage
         } else {
-          ;(globalThis as any).AsyncLocalStorage = previousAsyncLocalStorage
+          ;(globalThis as GlobalWithAsyncLocalStorage).AsyncLocalStorage =
+            previousAsyncLocalStorage
         }
       }
     })

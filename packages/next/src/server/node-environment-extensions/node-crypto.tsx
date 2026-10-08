@@ -24,7 +24,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
     const _randomUUID = nodeCrypto.randomUUID
     nodeCrypto.randomUUID = function randomUUID() {
       io(randomUUIDExpression, 'random')
-      return _randomUUID.apply(this, arguments as any)
+      return _randomUUID.apply(
+        this,
+        arguments as unknown as Parameters<typeof _randomUUID>
+      )
     }
   } catch {
     console.error(
@@ -41,7 +44,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
         // randomBytes is sync if the second arg is undefined
         io(randomBytesExpression, 'random')
       }
-      return _randomBytes.apply(this, arguments as any)
+      return _randomBytes.apply(
+        this,
+        arguments as unknown as Parameters<typeof _randomBytes>
+      )
     }
   } catch {
     console.error(
@@ -56,7 +62,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
     // @ts-expect-error -- TODO: tell TS the overloads are preserved
     nodeCrypto.randomFillSync = function randomFillSync() {
       io(randomFillSyncExpression, 'random')
-      return _randomFillSync.apply(this, arguments as any)
+      return _randomFillSync.apply(
+        this,
+        arguments as unknown as Parameters<typeof _randomFillSync>
+      )
     }
   } catch {
     console.error(
@@ -73,7 +82,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
         // randomInt is sync if the third arg is undefined
         io(randomIntExpression, 'random')
       }
-      return _randomInt.apply(this, arguments as any)
+      return _randomInt.apply(
+        this,
+        arguments as unknown as Parameters<typeof _randomInt>
+      )
     }
   } catch {
     console.error(
@@ -88,7 +100,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
     // @ts-expect-error -- TODO: tell TS the overloads are preserved
     nodeCrypto.generatePrimeSync = function generatePrimeSync() {
       io(generatePrimeSyncExpression, 'random')
-      return _generatePrimeSync.apply(this, arguments as any)
+      return _generatePrimeSync.apply(
+        this,
+        arguments as unknown as Parameters<typeof _generatePrimeSync>
+      )
     }
   } catch {
     console.error(
@@ -103,7 +118,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
     // @ts-expect-error -- TODO: tell TS the overloads are preserved
     nodeCrypto.generateKeyPairSync = function generateKeyPairSync() {
       io(generateKeyPairSyncExpression, 'random')
-      return _generateKeyPairSync.apply(this, arguments as any)
+      return _generateKeyPairSync.apply(
+        this,
+        arguments as unknown as Parameters<typeof _generateKeyPairSync>
+      )
     }
   } catch {
     console.error(
@@ -117,7 +135,10 @@ if (process.env.NEXT_RUNTIME === 'edge') {
     const _generateKeySync = nodeCrypto.generateKeySync
     nodeCrypto.generateKeySync = function generateKeySync() {
       io(generateKeySyncExpression, 'random')
-      return _generateKeySync.apply(this, arguments as any)
+      return _generateKeySync.apply(
+        this,
+        arguments as unknown as Parameters<typeof _generateKeySync>
+      )
     }
   } catch {
     console.error(

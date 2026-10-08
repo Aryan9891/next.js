@@ -88,10 +88,6 @@ function toHex(buffer: ArrayBufferView | ArrayBuffer): string {
 
 type Body = NonNullable<RequestInit['body'] | Request['body']>
 
-// The original body is stashed on `init` so `patch-fetch` can replay it after
-// it has been consumed to compute the cache key.
-type OgInit = (RequestInit | Request) & { _ogBody?: Body }
-
 // Duck typing to support Edge runtime
 // TODO: Switch to instanceof checks once Edge runtime is removed.
 
@@ -405,7 +401,7 @@ export class IncrementalCache implements IncrementalCacheType {
     if (body) {
       if (isBodyByteSequence(body)) {
         bodyChunks.push(`bytes:${toHex(body)}`)
-        ;(init as OgInit)._ogBody = body
+        Object.assign(init, { _ogBody: body })
       } else if (isBodyReadableStream(body)) {
         const readableBody = body
 
@@ -434,7 +430,7 @@ export class IncrementalCache implements IncrementalCacheType {
           }
 
           bodyChunks.push(`bytes:${toHex(arrayBuffer)}`)
-          ;(init as OgInit)._ogBody = arrayBuffer
+          Object.assign(init, { _ogBody: arrayBuffer })
         } catch (err) {
           console.error('Problem reading body', err)
         }
@@ -445,7 +441,7 @@ export class IncrementalCache implements IncrementalCacheType {
               'multipart/form-data; boundary='
             : 'application/x-www-form-urlencoded;charset=UTF-8'
         const iterable = body
-        ;(init as OgInit)._ogBody = body
+        Object.assign(init, { _ogBody: body })
         // Separate, tagged chunks so `["a","b"]` can't collide with `["a,b"]`.
         for (const [key, val] of iterable.entries()) {
           bodyChunks.push(`key:${key}`)
@@ -465,11 +461,13 @@ export class IncrementalCache implements IncrementalCacheType {
         const blob = body
         const arrayBuffer = await blob.arrayBuffer()
         bodyChunks.push('blob', blob.type, `bytes:${toHex(arrayBuffer)}`)
-        ;(init as OgInit)._ogBody = new Blob([arrayBuffer], { type: blob.type })
+        Object.assign(init, {
+          _ogBody: new Blob([arrayBuffer], { type: blob.type }),
+        })
         bodyType = blob.type
       } else if (typeof body === 'string') {
         bodyChunks.push(`str:${body}`)
-        ;(init as OgInit)._ogBody = body
+        Object.assign(init, { _ogBody: body })
         bodyType = 'text/plain;charset=UTF-8'
       } else {
         body satisfies never

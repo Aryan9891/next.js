@@ -1055,8 +1055,6 @@ const InternalFunctionDocument: DocumentType =
       </Html>
     )
   }
-;(
-  Document as typeof Document & {
-    [NEXT_BUILTIN_DOCUMENT]?: DocumentType
-  }
-)[NEXT_BUILTIN_DOCUMENT] = InternalFunctionDocument
+Object.assign(Document, {
+  [NEXT_BUILTIN_DOCUMENT]: InternalFunctionDocument,
+})

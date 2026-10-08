@@ -270,13 +270,11 @@ export class NextServer implements NextWrapperServer {
   }
 
   async logErrorWithOriginalStack(err: unknown, type: string) {
-    const server = await this.getServer()
+    const server =
+      (await this.getServer()) as NextServerWithOriginalStackLogging
     // this is only available on dev server
-    if (
-      (server as NextServerWithOriginalStackLogging).logErrorWithOriginalStack
-    ) {
-      return (server as NextServerWithOriginalStackLogging)
-        .logErrorWithOriginalStack!(err, type)
+    if (server.logErrorWithOriginalStack) {
+      return server.logErrorWithOriginalStack(err, type)
     }
   }
 
@@ -659,7 +657,7 @@ function createServer(
     const pluginMod: typeof import('./next-typescript') =
       require('./next-typescript') as typeof import('./next-typescript')
     return pluginMod.createTSPlugin(
-      options as any
+      options as unknown as Parameters<typeof pluginMod.createTSPlugin>[0]
     ) as unknown as NextWrapperServer
   }
 

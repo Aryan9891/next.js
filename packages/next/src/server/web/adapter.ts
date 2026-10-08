@@ -132,7 +132,8 @@ export async function adapter(
 
   // TODO-APP: use explicit marker for this
   const isEdgeRendering =
-    typeof (globalThis as any).__BUILD_MANIFEST !== 'undefined'
+    typeof (globalThis as { __BUILD_MANIFEST?: unknown }).__BUILD_MANIFEST !==
+    'undefined'
 
   params.request.url = normalizeRscURL(params.request.url)
 

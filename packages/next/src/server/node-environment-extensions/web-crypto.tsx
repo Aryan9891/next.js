@@ -27,7 +27,10 @@ try {
   const _getRandomValues = webCrypto.getRandomValues
   webCrypto.getRandomValues = function getRandomValues() {
     io(getRandomValuesExpression, 'crypto')
-    return _getRandomValues.apply(webCrypto, arguments as any)
+    return _getRandomValues.apply(
+      webCrypto,
+      arguments as unknown as Parameters<typeof _getRandomValues>
+    )
   }
 } catch {
   console.error(
@@ -40,7 +43,10 @@ try {
   const _randomUUID = webCrypto.randomUUID
   webCrypto.randomUUID = function randomUUID() {
     io(randomUUIDExpression, 'crypto')
-    return _randomUUID.apply(webCrypto, arguments as any)
+    return _randomUUID.apply(
+      webCrypto,
+      arguments as unknown as Parameters<typeof _randomUUID>
+    )
   } as typeof _randomUUID
 } catch {
   console.error(

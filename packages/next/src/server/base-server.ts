@@ -1676,14 +1676,16 @@ export default abstract class Server<
         if (finished) return
 
         const err = new Error()
-        ;(err as Error & { result?: { response: Response } }).result = {
-          response: new Response(null, {
-            headers: {
-              'x-middleware-next': '1',
-            },
-          }),
-        }
-        ;(err as Error & { bubble?: boolean }).bubble = true
+        Object.assign(err, {
+          result: {
+            response: new Response(null, {
+              headers: {
+                'x-middleware-next': '1',
+              },
+            }),
+          },
+          bubble: true,
+        })
         throw err
       }
 

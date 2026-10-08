@@ -2,10 +2,15 @@
 // for later imports to work properly.
 
 // expose AsyncLocalStorage on global for react usage if it isn't already provided by the environment
-if (typeof (globalThis as any).AsyncLocalStorage !== 'function') {
+if (
+  typeof (globalThis as typeof globalThis & { AsyncLocalStorage?: unknown })
+    .AsyncLocalStorage !== 'function'
+) {
   const { AsyncLocalStorage } =
     require('async_hooks') as typeof import('async_hooks')
-  ;(globalThis as any).AsyncLocalStorage = AsyncLocalStorage
+  ;(
+    globalThis as typeof globalThis & { AsyncLocalStorage?: unknown }
+  ).AsyncLocalStorage = AsyncLocalStorage
 }
 
 if (typeof globalThis.WebSocket !== 'function') {

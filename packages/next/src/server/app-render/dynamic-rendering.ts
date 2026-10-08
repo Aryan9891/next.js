@@ -382,9 +382,9 @@ export function abortAndThrowOnSynchronousRequestDataAccess(
 const NEXT_PRERENDER_INTERRUPTED = 'NEXT_PRERENDER_INTERRUPTED'
 
 function createPrerenderInterruptedError(message: string): Error {
-  const error = new Error(message)
-  ;(error as Error & { digest?: string }).digest = NEXT_PRERENDER_INTERRUPTED
-  return error
+  return Object.assign(new Error(message), {
+    digest: NEXT_PRERENDER_INTERRUPTED,
+  })
 }
 
 type DigestError = Error & {
