@@ -58,7 +58,7 @@ const forwardConsole: typeof console = {
     methods.map((method) => [
       method,
       (...args: Array<any>) =>
-        (console[method] as any)(
+        (console[method] as (...args: Array<any>) => void)(
           ...args.map((arg) =>
             methodsToSkipInspect.has(method) ||
             typeof arg !== 'object' ||
@@ -390,8 +390,8 @@ async function handleDir(
   distDir: string
 ) {
   const loggableEntry = await prepareConsoleArgs(entry, ctx, distDir)
-  const consoleMethod =
-    (forwardConsole as any)[entry.method] || forwardConsole.log
+  const consoleMethod: (...args: Array<any>) => void =
+    forwardConsole[entry.method] || forwardConsole.log
 
   if (entry.consoleMethodStack) {
     const mapped = await getSourceMappedStackFrames(
@@ -429,7 +429,7 @@ async function handleDefaultConsole(
   const withStackEntry = await withLocation(
     {
       original: consoleArgs,
-      stack: (entry as any).consoleMethodStack || null,
+      stack: entry.consoleMethodStack || null,
     },
     ctx,
     distDir,

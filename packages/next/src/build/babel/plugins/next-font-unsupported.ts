@@ -15,10 +15,9 @@ export default function NextPageDisallowReExportAllExports(): PluginObj<any> {
         ) {
           const err = new SyntaxError(
             `"next/font" requires SWC although Babel is being used due to a custom babel config being present.\nRead more: https://nextjs.org/docs/messages/babel-font-loader-conflict`
-          )
-          ;(err as any).code = 'BABEL_PARSE_ERROR'
-          ;(err as any).loc =
-            path.node.loc?.start ?? path.node.loc?.end ?? path.node.loc
+          ) as SyntaxError & { code?: string; loc?: unknown }
+          err.code = 'BABEL_PARSE_ERROR'
+          err.loc = path.node.loc?.start ?? path.node.loc?.end ?? path.node.loc
           throw err
         }
       },

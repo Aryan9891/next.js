@@ -558,10 +558,8 @@ export function onDemandEntryHandler({
   appDir?: string
 }) {
   const hasAppDir = !!appDir
-  let curInvalidator: Invalidator = getInvalidator(
-    multiCompiler.outputPath
-  ) as any
-  const curEntries = getEntries(multiCompiler.outputPath) as any
+  let curInvalidator = getInvalidator(multiCompiler.outputPath)
+  const curEntries = getEntries(multiCompiler.outputPath)
 
   if (!curInvalidator) {
     curInvalidator = new Invalidator(multiCompiler)
@@ -639,7 +637,7 @@ export function onDemandEntryHandler({
   }
 
   const startBuilding = (compilation: webpack.Compilation) => {
-    const compilationName = compilation.name as any as CompilerNameValues
+    const compilationName = compilation.name as CompilerNameValues
     curInvalidator.startBuilding(compilationName)
     // Reset deferred entries state for this compilation cycle
     // This ensures onBeforeDeferredEntries will be called again during HMR
@@ -1001,7 +999,7 @@ export function onDemandEntryHandler({
 
                 // If the invalidation also triggers a rebuild, we need to
                 // wait for that additional build to prevent race conditions.
-                const needsRebuild = curInvalidator.willRebuild(compilerKey)
+                const needsRebuild = curInvalidator!.willRebuild(compilerKey)
                 if (needsRebuild) {
                   doneCallbacks.once(entryKey, (rebuildErr: Error) => {
                     if (rebuildErr) {
@@ -1017,7 +1015,7 @@ export function onDemandEntryHandler({
           })
         )
 
-        curInvalidator.invalidate([...added.keys()])
+        curInvalidator!.invalidate([...added.keys()])
         await invalidatePromise
       }
     } finally {

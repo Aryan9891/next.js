@@ -67,7 +67,7 @@ export function normalizeCdnUrl(
   if (!_parsedUrl) {
     return req.url
   }
-  delete (_parsedUrl as any).search
+  delete (_parsedUrl as { search?: unknown }).search
   filterInternalQuery(_parsedUrl.query, paramKeys)
 
   req.url = formatUrl(_parsedUrl)
@@ -311,7 +311,7 @@ export function getServerUtils({
 
         Object.assign(rewriteParams, destQuery, params)
         Object.assign(rewrittenParsedUrl.query, parsedDestination.query)
-        delete (parsedDestination as any).query
+        delete (parsedDestination as { query?: unknown }).query
 
         Object.assign(rewrittenParsedUrl, parsedDestination)
 

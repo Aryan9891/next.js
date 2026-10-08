@@ -145,7 +145,7 @@ function createProcessPolyfill(env: Record<string, string>) {
         if (overriddenValue[key] !== undefined) {
           return overriddenValue[key]
         }
-        if (typeof (process as any)[key] === 'function') {
+        if (typeof process[key as keyof typeof process] === 'function') {
           return () => throwUnsupportedAPIError(`process.${key}`)
         }
         return undefined
@@ -187,6 +187,9 @@ function getDecorateUnhandledRejection(runtime: EdgeRuntime) {
     }
   }
 }
+
+// `util._extend` is deprecated and no longer in @types/node, but still exists.
+type UtilWithExtend = typeof UtilImplementation & { _extend?: unknown }
 
 const NativeModuleMap = (() => {
   const mods: Record<
@@ -234,8 +237,8 @@ const NativeModuleMap = (() => {
       'strictEqual',
       'throws',
     ]),
-    'node:util': pick(UtilImplementation, [
-      '_extend' as any,
+    'node:util': pick(UtilImplementation as UtilWithExtend, [
+      '_extend',
       'callbackify',
       'format',
       'inherits',

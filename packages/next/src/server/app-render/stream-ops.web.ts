@@ -8,6 +8,7 @@
  */
 
 import type { PostponedState, PrerenderOptions } from 'react-dom/static'
+import type { ReactDOMServerReadableStream } from 'react-dom/server'
 import { resume, renderToReadableStream } from 'react-dom/server'
 import { prerender } from 'react-dom/static'
 import type { renderToReadableStream as flightRenderToReadableStream } from 'react-server-dom-webpack/server'
@@ -98,15 +99,12 @@ export function continueFizzStream(
   renderStream: AnyStream,
   opts: ContinueFizzStreamOptions
 ): Promise<AnyStream> {
-  return webContinueFizzStream(
-    renderStream as ReadableStream<Uint8Array> as any,
-    {
-      ...opts,
-      inlinedDataStream: opts.inlinedDataStream as
-        | ReadableStream<Uint8Array>
-        | undefined,
-    }
-  )
+  return webContinueFizzStream(renderStream as ReactDOMServerReadableStream, {
+    ...opts,
+    inlinedDataStream: opts.inlinedDataStream as
+      | ReadableStream<Uint8Array>
+      | undefined,
+  })
 }
 
 export async function continueStaticPrerender(

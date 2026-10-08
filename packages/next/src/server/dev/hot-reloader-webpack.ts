@@ -141,7 +141,7 @@ export async function renderScriptError(
     'no-cache, no-store, max-age=0, must-revalidate'
   )
 
-  if ((error as any).code === 'ENOENT') {
+  if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
     return { finished: undefined }
   }
 

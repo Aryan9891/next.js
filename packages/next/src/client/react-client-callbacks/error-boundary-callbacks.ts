@@ -91,7 +91,8 @@ export function onCaughtError(
   if (process.env.NODE_ENV !== 'production') {
     const errorBoundaryName =
       // read react component displayName
-      (errorBoundaryComponent as any)?.displayName ||
+      (errorBoundaryComponent as React.ComponentType | undefined)
+        ?.displayName ||
       errorBoundaryComponent?.name ||
       'Unknown'
 

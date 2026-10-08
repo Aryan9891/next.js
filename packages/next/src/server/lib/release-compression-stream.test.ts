@@ -74,7 +74,7 @@ function createServer({ release }: { release: boolean }) {
     res.setHeader('content-type', 'text/html')
     res.write(`<html><body>${'x'.repeat(4096)}`)
     // Flush so the client receives a chunk, then leave the response open.
-    ;(res as any).flush()
+    ;(res as typeof res & { flush(): void }).flush()
   })
 }
 

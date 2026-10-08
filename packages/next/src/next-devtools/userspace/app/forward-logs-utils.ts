@@ -42,7 +42,8 @@ export function preLogSerializationClone<T>(
   }
 
   try {
-    if (typeof (value as any).then === 'function') return PROMISE_MARKER
+    if (typeof (value as { then?: unknown }).then === 'function')
+      return PROMISE_MARKER
   } catch {
     return UNAVAILABLE_MARKER
   }
@@ -66,7 +67,10 @@ export function preLogSerializationClone<T>(
     seen.set(value as object, out)
     for (const key of Object.keys(value as object)) {
       try {
-        out[key] = preLogSerializationClone((value as any)[key], seen)
+        out[key] = preLogSerializationClone(
+          (value as Record<string, unknown>)[key],
+          seen
+        )
       } catch {
         out[key] = UNAVAILABLE_MARKER
       }

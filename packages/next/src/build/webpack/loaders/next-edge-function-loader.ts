@@ -26,7 +26,7 @@ const nextEdgeFunctionLoader: webpack.LoaderDefinitionFunction<EdgeFunctionLoade
     const stringifiedCacheHandlerPath = cacheHandler
       ? stringifyRequest(this, cacheHandler)
       : null
-    const buildInfo = getModuleBuildInfo(this._module as any)
+    const buildInfo = getModuleBuildInfo(this._module!)
     const middlewareConfig: ProxyConfig = JSON.parse(
       Buffer.from(middlewareConfigBase64, 'base64').toString()
     )

@@ -31,6 +31,7 @@ import type {
   TurbopackResult,
   Project,
   Entrypoints,
+  RawEntrypoints,
   NodeJsPartialHmrUpdate,
   ServerHmrVersion,
 } from '../../build/swc/types'
@@ -1243,7 +1244,7 @@ export async function createHotReloaderTurbopack(
       previousRouteKeys = new Set(routes.keys())
 
       await handleEntrypoints({
-        entrypoints: entrypoints as any,
+        entrypoints: entrypoints as TurbopackResult<RawEntrypoints>,
 
         currentEntrypoints,
 
@@ -1411,7 +1412,7 @@ export async function createHotReloaderTurbopack(
                       page: name,
                       bundlePath: `app${name}`,
                       filename: '',
-                    } as any,
+                    },
                   }
                   break
                 }

@@ -35,7 +35,8 @@ export function traverseModules(
       for (const mod of chunkModules) {
         const modId = compilation.chunkGraph.getModuleId(mod)?.toString()
         if (modId) callback(mod, chunk, chunkGroup, modId)
-        const anyModule = mod as any
+        // ConcatenatedModule exposes its inner modules
+        const anyModule = mod as NormalModule & { modules?: Module[] }
         if (anyModule.modules) {
           for (const subMod of anyModule.modules)
             if (modId) callback(subMod, chunk, chunkGroup, modId)
@@ -78,7 +79,9 @@ export function forEachEntryModule(
       request.startsWith('next-edge-app-route-loader?')
     ) {
       entryModule.dependencies.forEach((dependency) => {
-        const modRequest: string | undefined = (dependency as any).request
+        const modRequest: string | undefined = (
+          dependency as typeof dependency & { request?: string }
+        ).request
         if (modRequest?.includes(getAppLoader())) {
           entryModule = compilation.moduleGraph.getResolvedModule(dependency)
         }

@@ -35,7 +35,7 @@ const overrideBooleanDescriptor = (
     if (descriptor) {
       Object.defineProperty(target, property, descriptor)
     } else {
-      delete (target as any)[property]
+      delete (target as { isTTY?: boolean })[property]
     }
   })
   Object.defineProperty(target, property, {

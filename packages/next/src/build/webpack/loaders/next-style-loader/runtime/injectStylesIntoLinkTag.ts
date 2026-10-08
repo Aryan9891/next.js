@@ -15,7 +15,7 @@ const getTarget = (() => {
         try {
           // This will throw an exception if access to iframe is blocked
           // due to cross-origin restrictions
-          styleTarget = (styleTarget as any).contentDocument.head
+          styleTarget = styleTarget.contentDocument!.head
         } catch (e) {
           // istanbul ignore next
           styleTarget = null

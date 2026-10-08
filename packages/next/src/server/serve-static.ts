@@ -33,9 +33,15 @@ export function serveStatic(
 export const getContentType: (extWithoutDot: string) => string | null =
   'getType' in send.mime
     ? (extWithoutDot: string) => send.mime.getType(extWithoutDot)
-    : (extWithoutDot: string) => (send.mime as any).lookup(extWithoutDot)
+    : (extWithoutDot: string) =>
+        (send.mime as unknown as { lookup(ext: string): string | null }).lookup(
+          extWithoutDot
+        )
 
 export const getExtension: (contentType: string) => string | null =
   'getExtension' in send.mime
     ? (contentType: string) => send.mime.getExtension(contentType)
-    : (contentType: string) => (send.mime as any).extension(contentType)
+    : (contentType: string) =>
+        (
+          send.mime as unknown as { extension(type: string): string | null }
+        ).extension(contentType)

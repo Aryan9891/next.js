@@ -121,6 +121,9 @@ type ListenerMetadata = {
 // as an underlying listener, creating mutual recursion that overflows the stack.
 // We error defensively rather than silently degrading.
 const FILTER_INSTALLED_KEY = Symbol.for('next.unhandledRejectionFilter')
+type UnhandledRejectionFilterGlobal = typeof globalThis & {
+  [FILTER_INSTALLED_KEY]?: boolean
+}
 let filterInstalled = false
 
 // We store the proxied listeners for unhandled rejections here.
@@ -199,7 +202,10 @@ const MACGUFFIN_EVENT = 'Next.UnhandledRejectionFilter.MacguffinEvent'
  * This should be called once during server startup to install the global filter.
  */
 function installUnhandledRejectionFilter(): void {
-  if ((globalThis as any)[FILTER_INSTALLED_KEY] || filterInstalled) {
+  if (
+    (globalThis as UnhandledRejectionFilterGlobal)[FILTER_INSTALLED_KEY] ||
+    filterInstalled
+  ) {
     // Already installed by another evaluation of this module in the same
     // process (e.g., Jest's module system re-evaluating an already-loaded
     // module). Safe to skip since the filter is already active.
@@ -531,7 +537,7 @@ You can debug event listener operations by running Next.js with \`NEXT_UNHANDLED
   )
 
   filterInstalled = true
-  ;(globalThis as any)[FILTER_INSTALLED_KEY] = true
+  ;(globalThis as UnhandledRejectionFilterGlobal)[FILTER_INSTALLED_KEY] = true
 }
 
 /**

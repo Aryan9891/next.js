@@ -112,6 +112,7 @@ import {
 import { isRedirectError } from '../../client/components/redirect-error'
 import { getImplicitTags, type ImplicitTags } from '../lib/implicit-tags'
 import { AppRenderSpan, NextNodeServerSpan } from '../lib/trace/constants'
+import type { SpanTypes } from '../lib/trace/constants'
 import {
   getRequestInsightsIdentity,
   runWithRequestInsightsIdentity,
@@ -380,6 +381,9 @@ export type AppSharedContext = {
   deploymentId: string
   clientAssetToken: string
 }
+
+/** A thrown value read as if it carried a React error digest. */
+type WithDigest = { digest: string }
 
 type AppRenderCapabilities = {
   /**
@@ -3711,7 +3715,7 @@ async function renderToStream(
   // during stream consumption, after a typical wrapped function would have ended the span.
   // Note: We pass the full span name as the first argument since startSpan uses it directly.
   const renderSpan = getTracer().startSpan(
-    `render route (app) ${pagePath}` as any,
+    `render route (app) ${pagePath}` as SpanTypes,
     {
       attributes: {
         'next.span_name': `render route (app) ${pagePath}`,
@@ -4538,7 +4542,9 @@ async function renderToStream(
             getErrorRSCPayload,
             tree,
             ctx,
-            reactServerErrorsByDigest.has((err as any).digest) ? null : err,
+            reactServerErrorsByDigest.has((err as WithDigest).digest)
+              ? null
+              : err,
             errorType,
             // Normal error rendering should include the error payload head.
             true
@@ -4630,7 +4636,9 @@ async function renderToStream(
             getErrorRSCPayload,
             tree,
             ctx,
-            reactServerErrorsByDigest.has((err as any).digest) ? null : err,
+            reactServerErrorsByDigest.has((err as WithDigest).digest)
+              ? null
+              : err,
             errorType,
             // Normal error rendering should include the error payload head.
             true
@@ -10008,9 +10016,8 @@ async function prerenderToStream(
                     isPrerenderInterruptedError(err) ||
                     finalClientReactController.signal.aborted
                   ) {
-                    const componentStack: string | undefined = (
-                      errorInfo as any
-                    ).componentStack
+                    const componentStack: string | null | undefined =
+                      errorInfo.componentStack
                     if (typeof componentStack === 'string') {
                       if (ensureStaticLevel === EnsureStaticLevel.Navigation) {
                         trackDynamicAccessInStaticRoute(
@@ -10448,7 +10455,7 @@ async function prerenderToStream(
         (isBuildTimePrerendering ||
           reactServerPrerenderResultIsDynamic === null)
       ) {
-        throw reactServerErrorsByDigest.get((err as any)?.digest) ?? err
+        throw reactServerErrorsByDigest.get((err as WithDigest)?.digest) ?? err
       }
     }
 
@@ -10550,7 +10557,9 @@ async function prerenderToStream(
         getErrorRSCPayload,
         tree,
         ctx,
-        reactServerErrorsByDigest.has((err as any)?.digest) ? undefined : err,
+        reactServerErrorsByDigest.has((err as WithDigest)?.digest)
+          ? undefined
+          : err,
         errorType,
         // The recovery shell only bootstraps the original Flight data. Avoid
         // blocking that shell on error-page metadata or viewport.
@@ -10655,9 +10664,8 @@ async function prerenderToStream(
                     isPrerenderInterruptedError(clientError) ||
                     errorClientReactController.signal.aborted
                   ) {
-                    const componentStack: string | undefined = (
-                      errorInfo as any
-                    ).componentStack
+                    const componentStack: string | null | undefined =
+                      errorInfo.componentStack
                     if (typeof componentStack === 'string') {
                       trackAllowedDynamicAccess(
                         clientError,
@@ -10864,7 +10872,9 @@ async function prerenderToStream(
       getErrorRSCPayload,
       tree,
       ctx,
-      reactServerErrorsByDigest.has((err as any)?.digest) ? undefined : err,
+      reactServerErrorsByDigest.has((err as WithDigest)?.digest)
+        ? undefined
+        : err,
       errorType,
       // Legacy prerender recovery should include the error payload head.
       true

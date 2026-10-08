@@ -95,11 +95,11 @@ export function formatConsoleArgs(args: unknown[]): string {
       }
       case 'd':
       case 'i': {
-        result += parseInt(args[idx++] as any, 10)
+        result += parseInt(args[idx++] as string, 10)
         break
       }
       case 'f': {
-        result += parseFloat(args[idx++] as any)
+        result += parseFloat(args[idx++] as string)
         break
       }
       case 's': {

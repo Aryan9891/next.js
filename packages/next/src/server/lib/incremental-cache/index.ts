@@ -40,6 +40,13 @@ import { createPromiseWithResolvers } from '../../../shared/lib/promise-with-res
 import { areTagsExpired, areTagsStale } from './tags-manifest.external'
 import type { __ApiPreviewProps } from '../../api-utils'
 
+declare global {
+  /** @internal */
+  var __incrementalCache: IncrementalCache | undefined
+  /** @internal */
+  var __incrementalCacheShared: boolean | undefined
+}
+
 export interface CacheHandlerContext {
   fs?: CacheFs
   dev?: boolean
@@ -81,6 +88,10 @@ function toHex(buffer: ArrayBufferView | ArrayBuffer): string {
 
 type Body = NonNullable<RequestInit['body'] | Request['body']>
 
+// The original body is stashed on `init` so `patch-fetch` can replay it after
+// it has been consumed to compute the cache key.
+type OgInit = (RequestInit | Request) & { _ogBody?: Body }
+
 // Duck typing to support Edge runtime
 // TODO: Switch to instanceof checks once Edge runtime is removed.
 
@@ -97,17 +108,17 @@ function isBodyByteSequence(
 }
 
 function isBodyReadableStream(body: Body): body is ReadableStream {
-  return typeof (body as any).getReader === 'function'
+  return typeof (body as ReadableStream).getReader === 'function'
 }
 
 function isBodyFormDataOrURLSearchParams(
   body: Body
 ): body is FormData | URLSearchParams {
-  return typeof (body as any).keys === 'function'
+  return typeof (body as FormData | URLSearchParams).keys === 'function'
 }
 
 function isBodyBlob(body: Body): body is Blob {
-  return typeof (body as any).arrayBuffer === 'function'
+  return typeof (body as Blob).arrayBuffer === 'function'
 }
 
 export class CacheHandler {
@@ -121,7 +132,7 @@ export class CacheHandler {
       | GetIncrementalResponseCacheHandlerContext
       | GetIncrementalImageCacheContext
   ): Promise<CacheHandlerValue | null> {
-    return {} as any
+    return {} as CacheHandlerValue
   }
 
   public async set(
@@ -394,7 +405,7 @@ export class IncrementalCache implements IncrementalCacheType {
     if (body) {
       if (isBodyByteSequence(body)) {
         bodyChunks.push(`bytes:${toHex(body)}`)
-        ;(init as any)._ogBody = body
+        ;(init as OgInit)._ogBody = body
       } else if (isBodyReadableStream(body)) {
         const readableBody = body
 
@@ -423,7 +434,7 @@ export class IncrementalCache implements IncrementalCacheType {
           }
 
           bodyChunks.push(`bytes:${toHex(arrayBuffer)}`)
-          ;(init as any)._ogBody = arrayBuffer
+          ;(init as OgInit)._ogBody = arrayBuffer
         } catch (err) {
           console.error('Problem reading body', err)
         }
@@ -434,7 +445,7 @@ export class IncrementalCache implements IncrementalCacheType {
               'multipart/form-data; boundary='
             : 'application/x-www-form-urlencoded;charset=UTF-8'
         const iterable = body
-        ;(init as any)._ogBody = body
+        ;(init as OgInit)._ogBody = body
         // Separate, tagged chunks so `["a","b"]` can't collide with `["a,b"]`.
         for (const [key, val] of iterable.entries()) {
           bodyChunks.push(`key:${key}`)
@@ -454,11 +465,11 @@ export class IncrementalCache implements IncrementalCacheType {
         const blob = body
         const arrayBuffer = await blob.arrayBuffer()
         bodyChunks.push('blob', blob.type, `bytes:${toHex(arrayBuffer)}`)
-        ;(init as any)._ogBody = new Blob([arrayBuffer], { type: blob.type })
+        ;(init as OgInit)._ogBody = new Blob([arrayBuffer], { type: blob.type })
         bodyType = blob.type
       } else if (typeof body === 'string') {
         bodyChunks.push(`str:${body}`)
-        ;(init as any)._ogBody = body
+        ;(init as OgInit)._ogBody = body
         bodyType = 'text/plain;charset=UTF-8'
       } else {
         body satisfies never

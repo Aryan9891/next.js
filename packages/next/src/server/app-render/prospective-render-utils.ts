@@ -27,11 +27,12 @@ export function printDebugThrownValueForProspectiveRender(
   if (
     typeof thrownValue === 'object' &&
     thrownValue !== null &&
-    typeof (thrownValue as any).message === 'string'
+    typeof (thrownValue as { message?: unknown }).message === 'string'
   ) {
-    message = (thrownValue as any).message
-    if (typeof (thrownValue as any).stack === 'string') {
-      const originalErrorStack: string = (thrownValue as any).stack
+    message = (thrownValue as { message: string }).message
+    if (typeof (thrownValue as { stack?: unknown }).stack === 'string') {
+      const originalErrorStack: string = (thrownValue as { stack: string })
+        .stack
       const stackStart = originalErrorStack.indexOf('\n')
       if (stackStart > -1) {
         const error = new Error(

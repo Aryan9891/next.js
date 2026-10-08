@@ -299,9 +299,13 @@ export const getCacheDirectories = process.env.NEXT_RSPACK
       return new Set(
         configs
           .map((cfg) => {
-            const cache = cfg.cache as any
+            // Rspack's persistent cache options aren't part of webpack's types.
+            const cache = cfg.cache as
+              | boolean
+              | { type?: string; storage?: { directory: string } }
+              | undefined
             if (typeof cache === 'object' && cache.type === 'persistent') {
-              return cache.storage.directory
+              return cache.storage!.directory
             }
             return null
           })
@@ -978,7 +982,9 @@ export default async function getBaseWebpackConfig(
           // If esmExternals is not same as default value, it represents customized usage
           ['esmExternals', config.experimental.esmExternals !== true],
           SWCBinaryTarget,
-        ].filter<[Feature, boolean]>(Boolean as any)
+        ].filter<[Feature, boolean]>(
+          Boolean as unknown as (x: unknown) => x is [Feature, boolean]
+        )
       )
     )
 
@@ -2239,7 +2245,7 @@ export default async function getBaseWebpackConfig(
           dir,
           defaultOverrides,
         }),
-    ].filter(Boolean as any as ExcludesFalse),
+    ].filter(Boolean as unknown as ExcludesFalse),
   }
 
   // Support tsconfig and jsconfig baseUrl
@@ -2624,7 +2630,10 @@ export default async function getBaseWebpackConfig(
       webpack5Config.experiments.lazyCompilation.entries = false
     }
 
-    if (typeof (webpackConfig as any).then === 'function') {
+    if (
+      typeof (webpackConfig as webpack.Configuration & { then?: unknown })
+        .then === 'function'
+    ) {
       console.warn(
         '> Promise returned in next config. https://nextjs.org/docs/messages/promise-in-next-config'
       )
@@ -2733,7 +2742,7 @@ export default async function getBaseWebpackConfig(
     }
 
     webpackConfig.module.rules = [
-      ...(topRules as any),
+      ...topRules,
       {
         oneOf: [...innerRules, fileLoader],
       },
@@ -2741,8 +2750,16 @@ export default async function getBaseWebpackConfig(
   }
 
   // Backwards compat with webpack-dev-middleware options object
-  if (typeof (config as any).webpackDevMiddleware === 'function') {
-    const options = (config as any).webpackDevMiddleware({
+  // `webpackDevMiddleware` is a legacy option that is no longer part of the
+  // config type.
+  type LegacyWebpackDevMiddleware = (options: {
+    watchOptions: webpack.Configuration['watchOptions']
+  }) => { watchOptions?: webpack.Configuration['watchOptions'] }
+  type LegacyNextConfig = NextConfigComplete & {
+    webpackDevMiddleware?: LegacyWebpackDevMiddleware
+  }
+  if (typeof (config as LegacyNextConfig).webpackDevMiddleware === 'function') {
+    const options = (config as LegacyNextConfig).webpackDevMiddleware!({
       watchOptions: webpackConfig.watchOptions,
     })
     if (options.watchOptions) {
@@ -2812,7 +2829,10 @@ export default async function getBaseWebpackConfig(
         if (!r || typeof r !== 'object') return
         if (Array.isArray(r.oneOf)) {
           r.oneOf = r.oneOf.filter(
-            (o) => (o as any)[Symbol.for('__next_css_remove')] !== true
+            (o) =>
+              (o as webpack.RuleSetRule & { [key: symbol]: unknown })[
+                Symbol.for('__next_css_remove')
+              ] !== true
           )
         }
       })
@@ -2820,14 +2840,15 @@ export default async function getBaseWebpackConfig(
     if (webpackConfig.plugins?.length) {
       // Disable CSS Extraction Plugin
       webpackConfig.plugins = webpackConfig.plugins.filter(
-        (p) => (p as any).__next_css_remove !== true
+        (p) => (p as { __next_css_remove?: boolean }).__next_css_remove !== true
       )
     }
     if (webpackConfig.optimization?.minimizer?.length) {
       // Disable CSS Minifier
       webpackConfig.optimization.minimizer =
         webpackConfig.optimization.minimizer.filter(
-          (e) => (e as any).__next_css_remove !== true
+          (e) =>
+            (e as { __next_css_remove?: boolean }).__next_css_remove !== true
         )
     }
   }

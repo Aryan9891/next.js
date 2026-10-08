@@ -334,7 +334,7 @@ export function getImgProps(
 
   // Remove property so it's not spread on <img> element
   delete rest.loader
-  delete (rest as any).srcSet
+  delete (rest as typeof rest & { srcSet?: unknown }).srcSet
 
   // This special value indicates that the user
   // didn't define a "loader" prop or "loader" config.

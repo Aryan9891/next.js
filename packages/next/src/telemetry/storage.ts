@@ -215,7 +215,8 @@ export class Telemetry {
         return res
       })
 
-    ;(prom as any)._events = Array.isArray(_events) ? _events : [_events]
+    ;(prom as typeof prom & { _events?: TelemetryEvent[] })._events =
+      Array.isArray(_events) ? _events : [_events]
     ;(prom as any)._controller = (prom as any)._controller
     // Track this `Promise` so we can flush pending events
     this.queue.add(prom)

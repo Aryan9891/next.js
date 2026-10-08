@@ -138,7 +138,7 @@ const edgeSSRLoader: webpack.LoaderDefinitionFunction<EdgeSSRLoaderQuery> =
     ).toString()
     const isAppDir = pagesType === 'app'
 
-    const buildInfo = getModuleBuildInfo(this._module as any)
+    const buildInfo = getModuleBuildInfo(this._module!)
     buildInfo.nextEdgeSSR = {
       isServerComponent,
       page: page,

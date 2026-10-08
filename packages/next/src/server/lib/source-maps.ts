@@ -199,14 +199,19 @@ const bundlerFindSourceMapURLSymbol = Symbol.for(
 export function setBundlerFindSourceMapURLImplementation(
   findSourceMapURLImplementation: FindSourceMapURL
 ): void {
-  ;(globalThis as any)[bundlerFindSourceMapURLSymbol] =
-    findSourceMapURLImplementation
+  ;(
+    globalThis as typeof globalThis & {
+      [bundlerFindSourceMapURLSymbol]?: FindSourceMapURL
+    }
+  )[bundlerFindSourceMapURLSymbol] = findSourceMapURLImplementation
 }
 
 function bundlerFindSourceMapURL(scriptNameOrSourceURL: string): string | null {
-  const implementation: FindSourceMapURL | undefined = (globalThis as any)[
-    bundlerFindSourceMapURLSymbol
-  ]
+  const implementation: FindSourceMapURL | undefined = (
+    globalThis as typeof globalThis & {
+      [bundlerFindSourceMapURLSymbol]?: FindSourceMapURL
+    }
+  )[bundlerFindSourceMapURLSymbol]
   return implementation === undefined
     ? null
     : implementation(scriptNameOrSourceURL)

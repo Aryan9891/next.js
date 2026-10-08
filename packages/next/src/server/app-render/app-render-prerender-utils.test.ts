@@ -235,7 +235,9 @@ describe('ReplayableNodeStream', () => {
 
       const replay = replayable.createReplayStream()
 
-      const subscribers = (replayable as any)._subscribers as Set<unknown>
+      const subscribers = (
+        replayable as unknown as { _subscribers: Set<unknown> }
+      )._subscribers
       expect(subscribers.size).toBe(1)
 
       const closed = new Promise<void>((r) => replay.on('close', r))
@@ -255,7 +257,9 @@ describe('ReplayableNodeStream', () => {
 
       replayable.createReplayStream()
 
-      const subscribers = (replayable as any)._subscribers as Set<unknown>
+      const subscribers = (
+        replayable as unknown as { _subscribers: Set<unknown> }
+      )._subscribers
       expect(subscribers.size).toBe(0)
     })
 
@@ -269,7 +273,9 @@ describe('ReplayableNodeStream', () => {
       const replay = replayable.createReplayStream()
       replay.on('error', () => {})
 
-      const subscribers = (replayable as any)._subscribers as Set<unknown>
+      const subscribers = (
+        replayable as unknown as { _subscribers: Set<unknown> }
+      )._subscribers
       expect(subscribers.size).toBe(0)
     })
   })
@@ -350,16 +356,24 @@ describe('ReplayableNodeStream', () => {
 
       const replay = replayable.createReplayStream()
 
-      expect((replayable as any)._chunks).not.toBeNull()
-      expect((replayable as any)._subscribers.size).toBe(1)
+      expect(
+        (replayable as unknown as { _chunks: unknown })._chunks
+      ).not.toBeNull()
+      expect(
+        (replayable as unknown as { _subscribers: Set<unknown> })._subscribers
+          .size
+      ).toBe(1)
 
       replayable.dispose()
 
-      expect((replayable as any)._chunks).toBeNull()
+      expect((replayable as unknown as { _chunks: unknown })._chunks).toBeNull()
       // Subscribers must NOT be cleared: the replay stream's onEnd subscriber
       // needs to remain active so the stream receives push(null) when the
       // source ends, otherwise the consumer never sees EOF.
-      expect((replayable as any)._subscribers.size).toBe(1)
+      expect(
+        (replayable as unknown as { _subscribers: Set<unknown> })._subscribers
+          .size
+      ).toBe(1)
 
       replay.destroy()
     })

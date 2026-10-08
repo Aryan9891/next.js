@@ -372,7 +372,8 @@ export function createPatchedFetcher(
 
     // Do create a new span trace for internal fetches in the
     // non-verbose mode.
-    const isInternal = (init?.next as any)?.internal === true
+    const isInternal =
+      (init?.next as { internal?: boolean } | undefined)?.internal === true
     const hideSpan = process.env.NEXT_OTEL_FETCH_DISABLED === '1'
     // We don't track fetch metrics for internal fetches
     // so it's not critical that we have a start time, as it won't be recorded.
@@ -913,9 +914,11 @@ export function createPatchedFetcher(
           ]
 
           if (isRequestInput) {
-            const reqInput: Request = input as any
+            const reqInput: Request = input as Request
             const reqOptions: RequestInit = {
-              body: (reqInput as any)._ogBody || reqInput.body,
+              body:
+                (reqInput as Request & { _ogBody?: RequestInit['body'] })
+                  ._ogBody || reqInput.body,
             }
 
             for (const field of requestInputFields) {

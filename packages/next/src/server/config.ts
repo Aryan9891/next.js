@@ -352,21 +352,25 @@ function warnCustomizedOption(
  */
 function assignDefaultsAndValidate(
   dir: string,
-  userConfig: NextConfig & { configFileName: string },
+  userConfig: NextConfig & {
+    configFileName: string
+    /** Removed option, still read here to print a migration warning. */
+    exportTrailingSlash?: boolean
+  },
   silent: boolean,
   phase: PHASE_TYPE
 ): NextConfigComplete {
   const configFileName = userConfig.configFileName
-  if (typeof (userConfig as any).exportTrailingSlash !== 'undefined') {
+  if (typeof userConfig.exportTrailingSlash !== 'undefined') {
     if (!silent) {
       Log.warn(
         `The "exportTrailingSlash" option has been renamed to "trailingSlash". Please update your ${configFileName}.`
       )
     }
     if (typeof userConfig.trailingSlash === 'undefined') {
-      userConfig.trailingSlash = (userConfig as any).exportTrailingSlash
+      userConfig.trailingSlash = userConfig.exportTrailingSlash
     }
-    delete (userConfig as any).exportTrailingSlash
+    delete userConfig.exportTrailingSlash
   }
 
   const config = Object.keys(userConfig).reduce<{ [key: string]: any }>(
@@ -1040,7 +1044,9 @@ function assignDefaultsAndValidate(
     silent
   )
 
-  if ((result.experimental as any).outputStandalone) {
+  if (
+    (result.experimental as { outputStandalone?: boolean }).outputStandalone
+  ) {
     if (!silent) {
       Log.warn(
         `experimental.outputStandalone has been renamed to "output: 'standalone'", please move the config.`
@@ -2130,7 +2136,7 @@ async function loadConfigImpl(
       } else {
         userConfigModule = await import(pathToFileURL(path).href)
       }
-      const newEnv: typeof process.env = {} as any
+      const newEnv: Record<string, string | undefined> = {}
 
       for (const key of Object.keys(process.env)) {
         if (envBefore[key] !== process.env[key]) {
@@ -2210,8 +2216,11 @@ async function loadConfigImpl(
     // `experimental.turbopackGenerateComponentChunks` has moved into
     // `experimental.turbopackChunking.generateComponentChunks`.
     if (
-      (userConfig.experimental as any)?.turbopackGenerateComponentChunks !==
-      undefined
+      (
+        userConfig.experimental as
+          | { turbopackGenerateComponentChunks?: unknown }
+          | undefined
+      )?.turbopackGenerateComponentChunks !== undefined
     ) {
       throw new Error(
         `\`experimental.turbopackGenerateComponentChunks\` has been moved to \`experimental.turbopackChunking.generateComponentChunks\`. Please update your ${configFileName} file accordingly.`
@@ -2221,8 +2230,11 @@ async function loadConfigImpl(
     // `experimental.turbopackChunkingHeuristics` has been renamed to
     // `experimental.turbopackChunking`.
     if (
-      (userConfig.experimental as any)?.turbopackChunkingHeuristics !==
-      undefined
+      (
+        userConfig.experimental as
+          | { turbopackChunkingHeuristics?: unknown }
+          | undefined
+      )?.turbopackChunkingHeuristics !== undefined
     ) {
       throw new Error(
         `\`experimental.turbopackChunkingHeuristics\` has been renamed to \`experimental.turbopackChunking\`. Please update your ${configFileName} file accordingly.`
@@ -2245,7 +2257,10 @@ async function loadConfigImpl(
       )
     }
 
-    if ((userConfig as any).target && (userConfig as any).target !== 'server') {
+    if (
+      (userConfig as { target?: unknown }).target &&
+      (userConfig as { target?: unknown }).target !== 'server'
+    ) {
       throw new Error(
         `The "target" property is no longer supported in ${configFileName}.\n` +
           'See more info here https://nextjs.org/docs/messages/deprecated-target-config'
@@ -2346,8 +2361,10 @@ async function loadConfigImpl(
       [
         `${configBaseName}.cjs`,
         `${configBaseName}.cts`,
-        // TODO: Remove `as any` once we bump @types/node to v22.10.0+
-        ...((process.features as any).typescript ? [] : ['next.config.mts']),
+        // TODO: Remove the cast once we bump @types/node to v22.10.0+
+        ...((process.features as { typescript?: unknown }).typescript
+          ? []
+          : ['next.config.mts']),
         `${configBaseName}.json`,
         `${configBaseName}.jsx`,
         `${configBaseName}.tsx`,

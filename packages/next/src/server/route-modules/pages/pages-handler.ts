@@ -98,7 +98,7 @@ export const getHandler = ({
       srcPage = '/'
     }
     const multiZoneDraftMode = process.env
-      .__NEXT_MULTI_ZONE_DRAFT_MODE as any as boolean
+      .__NEXT_MULTI_ZONE_DRAFT_MODE as unknown as boolean
 
     const prepareResult = await routeModule.prepare(req, res, {
       srcPage,
@@ -322,7 +322,7 @@ export const getHandler = ({
                     nextConfig.assetPrefix
                   ),
                   previewProps,
-                  images: nextConfig.images as any,
+                  images: nextConfig.images,
                   nextConfigOutput: nextConfig.output,
                   optimizeCss: Boolean(nextConfig.experimental.optimizeCss),
                   nextScriptWorkers: Boolean(
@@ -342,8 +342,7 @@ export const getHandler = ({
 
                   experimental: {
                     clientTraceMetadata:
-                      nextConfig.experimental.clientTraceMetadata ||
-                      ([] as any),
+                      nextConfig.experimental.clientTraceMetadata || [],
                   },
 
                   locale,

@@ -29,6 +29,11 @@ import { AsyncCallbackSet } from './lib/async-callback-set'
 
 let ServerImpl: typeof NextNodeServer
 
+// `logErrorWithOriginalStack` is only implemented by the dev server.
+type NextServerWithOriginalStackLogging = NextNodeServer & {
+  logErrorWithOriginalStack?: (err: unknown, type: string) => void
+}
+
 const getServerImpl = async () => {
   if (ServerImpl === undefined) {
     ServerImpl = (
@@ -267,8 +272,11 @@ export class NextServer implements NextWrapperServer {
   async logErrorWithOriginalStack(err: unknown, type: string) {
     const server = await this.getServer()
     // this is only available on dev server
-    if ((server as any).logErrorWithOriginalStack) {
-      return (server as any).logErrorWithOriginalStack(err, type)
+    if (
+      (server as NextServerWithOriginalStackLogging).logErrorWithOriginalStack
+    ) {
+      return (server as NextServerWithOriginalStackLogging)
+        .logErrorWithOriginalStack!(err, type)
     }
   }
 
@@ -504,7 +512,13 @@ class NextCustomServer implements NextWrapperServer {
   ) {
     if (!this.didWebSocketSetup) {
       this.didWebSocketSetup = true
-      customServer = customServer || (_req?.socket as any)?.server
+      customServer =
+        customServer ||
+        (
+          _req?.socket as
+            | (import('net').Socket & { server?: import('http').Server })
+            | undefined
+        )?.server
 
       if (customServer) {
         customServer.on('upgrade', async (req, socket, head) => {
@@ -640,7 +654,7 @@ function createServer(
   if (
     options &&
     'typescript' in options &&
-    'version' in (options as any).typescript
+    'version' in (options.typescript as object)
   ) {
     const pluginMod: typeof import('./next-typescript') =
       require('./next-typescript') as typeof import('./next-typescript')

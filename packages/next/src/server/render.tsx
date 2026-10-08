@@ -422,7 +422,7 @@ export function errorToJSON(err: Error) {
     source,
     message: stripAnsi(err.message),
     stack: err.stack,
-    digest: (err as any).digest,
+    digest: (err as Error & { digest?: unknown }).digest,
   }
 }
 
@@ -465,7 +465,7 @@ export async function renderToHTMLImpl(
   renderContext: PagesRenderContext
 ): Promise<RenderResult> {
   // Adds support for reading `cookies` in `getServerSideProps` when SSR.
-  setLazyProp({ req: req as any }, 'cookies', getCookieParser(req.headers))
+  setLazyProp({ req: req }, 'cookies', getCookieParser(req.headers))
 
   // cssCacheBuster is a workaround for a Safari bug
   // (https://bugs.webkit.org/show_bug.cgi?id=187726) where preloaded CSS
@@ -517,8 +517,7 @@ export async function renderToHTMLImpl(
 
   let Document = extra.Document
 
-  let Component: React.ComponentType<{}> | ((props: any) => JSX.Element) =
-    renderOpts.Component
+  let Component: NextComponentType = renderOpts.Component
   const OriginComponent = Component
 
   const isFallback = renderContext.isFallback ?? false
@@ -530,17 +529,19 @@ export async function renderToHTMLImpl(
   const isSSG = !!getStaticProps
   const isBuildTimeSSG = isSSG && renderOpts.isBuildTimePrerendering
   const defaultAppGetInitialProps =
-    App.getInitialProps === (App as any).origGetInitialProps
+    App.getInitialProps ===
+    (App as AppType & { origGetInitialProps?: unknown }).origGetInitialProps
 
-  const hasPageGetInitialProps = !!(Component as any)?.getInitialProps
+  const hasPageGetInitialProps = !!Component?.getInitialProps
   const hasPageScripts = (Component as any)?.unstable_scriptLoader
 
   const pageIsDynamic = isDynamicRoute(pathname)
 
   const defaultErrorGetInitialProps =
     pathname === '/_error' &&
-    (Component as any).getInitialProps ===
-      (Component as any).origGetInitialProps
+    Component.getInitialProps ===
+      (Component as NextComponentType & { origGetInitialProps?: unknown })
+        .origGetInitialProps
 
   if (
     renderOpts.isBuildTimePrerendering &&
@@ -668,7 +669,9 @@ export async function renderToHTMLImpl(
     'getServerSideProps',
     'getStaticPaths',
   ]) {
-    if ((Component as any)?.[methodName]) {
+    if (
+      (Component as NextComponentType & Record<string, unknown>)?.[methodName]
+    ) {
       throw new Error(
         `page ${pathname} ${methodName} ${GSSP_COMPONENT_MEMBER_ERROR}`
       )
@@ -924,8 +927,8 @@ export async function renderToHTMLImpl(
 
     if (process.env.NODE_ENV !== 'production') {
       if (
-        typeof (data as any).notFound !== 'undefined' &&
-        typeof (data as any).redirect !== 'undefined'
+        typeof (data as { notFound?: unknown }).notFound !== 'undefined' &&
+        typeof (data as { redirect?: unknown }).redirect !== 'undefined'
       ) {
         throw new Error(
           `\`redirect\` and \`notFound\` can not both be returned from ${
@@ -959,12 +962,14 @@ export async function renderToHTMLImpl(
         )
       }
 
-      ;(data as any).props = {
+      ;(data as { props?: unknown }).props = {
         __N_REDIRECT: data.redirect.destination,
         __N_REDIRECT_STATUS: getRedirectStatus(data.redirect),
       }
       if (typeof data.redirect.basePath !== 'undefined') {
-        ;(data as any).props.__N_REDIRECT_BASE_PATH = data.redirect.basePath
+        ;(
+          data as typeof data & { props: Record<string, unknown> }
+        ).props.__N_REDIRECT_BASE_PATH = data.redirect.basePath
       }
       metadata.isRedirect = true
     }
@@ -972,7 +977,11 @@ export async function renderToHTMLImpl(
     if (
       (process.env.__NEXT_DEV_SERVER || isBuildTimeSSG) &&
       !metadata.isNotFound &&
-      !isSerializableProps(pathname, 'getStaticProps', (data as any).props)
+      !isSerializableProps(
+        pathname,
+        'getStaticProps',
+        (data as { props?: unknown }).props
+      )
     ) {
       // this fn should throw an error instead of ever returning `false`
       throw new Error(
@@ -1135,7 +1144,7 @@ export async function renderToHTMLImpl(
       throw new Error(GSSP_NO_RETURNED_VALUE)
     }
 
-    if ((data as any).props instanceof Promise) {
+    if ((data as { props?: unknown }).props instanceof Promise) {
       deferredContent = true
     }
 
@@ -1143,12 +1152,12 @@ export async function renderToHTMLImpl(
       (key) => key !== 'props' && key !== 'redirect' && key !== 'notFound'
     )
 
-    if ((data as any).unstable_notFound) {
+    if ((data as { unstable_notFound?: unknown }).unstable_notFound) {
       throw new Error(
         `unstable_notFound has been renamed to notFound, please update the field to continue. Page: ${pathname}`
       )
     }
-    if ((data as any).unstable_redirect) {
+    if ((data as { unstable_redirect?: unknown }).unstable_redirect) {
       throw new Error(
         `unstable_redirect has been renamed to redirect, please update the field to continue. Page: ${pathname}`
       )
@@ -1174,23 +1183,30 @@ export async function renderToHTMLImpl(
 
     if ('redirect' in data && typeof data.redirect === 'object') {
       checkRedirectValues(data.redirect as Redirect, req, 'getServerSideProps')
-      ;(data as any).props = {
+      ;(data as { props?: unknown }).props = {
         __N_REDIRECT: data.redirect.destination,
         __N_REDIRECT_STATUS: getRedirectStatus(data.redirect),
       }
       if (typeof data.redirect.basePath !== 'undefined') {
-        ;(data as any).props.__N_REDIRECT_BASE_PATH = data.redirect.basePath
+        ;(
+          data as typeof data & { props: Record<string, unknown> }
+        ).props.__N_REDIRECT_BASE_PATH = data.redirect.basePath
       }
       metadata.isRedirect = true
     }
 
     if (deferredContent) {
-      ;(data as any).props = await (data as any).props
+      ;(data as { props?: unknown }).props = await (data as { props?: unknown })
+        .props
     }
 
     if (
       (process.env.__NEXT_DEV_SERVER || isBuildTimeSSG) &&
-      !isSerializableProps(pathname, 'getServerSideProps', (data as any).props)
+      !isSerializableProps(
+        pathname,
+        'getServerSideProps',
+        (data as { props?: unknown }).props
+      )
     ) {
       // this fn should throw an error instead of ever returning `false`
       throw new Error(
@@ -1198,7 +1214,11 @@ export async function renderToHTMLImpl(
       )
     }
 
-    props.pageProps = Object.assign({}, props.pageProps, (data as any).props)
+    props.pageProps = Object.assign(
+      {},
+      props.pageProps,
+      (data as { props?: unknown }).props
+    )
     metadata.pageData = props
   }
 
@@ -1269,7 +1289,9 @@ export async function renderToHTMLImpl(
     // 2. Using the class component `Document` with concurrent features.
 
     const BuiltinFunctionalDocument: DocumentType | undefined = (
-      Document as any
+      Document as DocumentType & {
+        [NEXT_BUILTIN_DOCUMENT]?: DocumentType
+      }
     )[NEXT_BUILTIN_DOCUMENT]
 
     if (process.env.NEXT_RUNTIME === 'edge' && Document.getInitialProps) {
@@ -1390,7 +1412,9 @@ export async function renderToHTMLImpl(
       if (documentInitialPropsRes === null) {
         content = null
       } else {
-        const { docProps } = documentInitialPropsRes as any
+        const { docProps } = documentInitialPropsRes as {
+          docProps: DocumentInitialProps
+        }
         content = docProps.html
       }
     } else {
@@ -1568,7 +1592,9 @@ export async function renderToHTMLImpl(
     const expectedDocComponents = ['Main', 'Head', 'NextScript', 'Html']
 
     for (const comp of expectedDocComponents) {
-      if (!(docComponentsRendered as any)[comp]) {
+      if (
+        !(docComponentsRendered as Record<string, boolean | undefined>)[comp]
+      ) {
         nonRenderedComponents.push(comp)
       }
     }

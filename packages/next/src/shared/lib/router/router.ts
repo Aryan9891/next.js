@@ -73,6 +73,13 @@ interface TransitionOptions {
   locale?: string | false
   scroll?: boolean
   unstable_skipClientCache?: boolean
+  /**
+   * @internal Set to `1` for the hydration-time query update and `0` for
+   * `onPopState` replays. Apps must never pass this.
+   */
+  _h?: 0 | 1
+  /** @internal Whether `change()` should resolve `href` against rewrites. */
+  _shouldResolveHref?: boolean
 }
 
 interface NextHistoryState {
@@ -918,7 +925,7 @@ export default class Router implements BaseRouter {
         }).then((matches) => {
           // if middleware matches we leave resolving to the change function
           // as the server needs to resolve for correct priority
-          ;(options as any)._shouldResolveHref = as !== pathname
+          options._shouldResolveHref = as !== pathname
 
           this.changeState(
             'replaceState',
@@ -1041,7 +1048,6 @@ export default class Router implements BaseRouter {
       Object.assign<{}, TransitionOptions, TransitionOptions>({}, options, {
         shallow: options.shallow && this._shallow,
         locale: options.locale || this.defaultLocale,
-        // @ts-ignore internal value not exposed on types
         _h: 0,
       }),
       forcedScroll
@@ -1267,7 +1273,7 @@ export default class Router implements BaseRouter {
     // WARNING: `_h` is an internal option for handing Next.js client-side
     // hydration. Your app should _never_ use this property. It may change at
     // any time without notice.
-    const isQueryUpdating = (options as any)._h === 1
+    const isQueryUpdating = options._h === 1
 
     if (!isQueryUpdating && !options.shallow) {
       await this._bfl(as, undefined, options.locale)
@@ -1275,7 +1281,7 @@ export default class Router implements BaseRouter {
 
     let shouldResolveHref =
       isQueryUpdating ||
-      (options as any)._shouldResolveHref ||
+      options._shouldResolveHref ||
       parsePath(url).pathname === parsePath(as).pathname
 
     const nextState = {
@@ -1535,7 +1541,7 @@ export default class Router implements BaseRouter {
     }
 
     if (shouldResolveHref && pathname !== '/_error') {
-      ;(options as any)._shouldResolveHref = true
+      options._shouldResolveHref = true
 
       if (process.env.__NEXT_HAS_REWRITES && as.startsWith('/')) {
         const rewritesResult = resolveRewrites(

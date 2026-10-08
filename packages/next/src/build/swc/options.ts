@@ -22,6 +22,11 @@ const regeneratorRuntimePath = require.resolve(
   'next/dist/compiled/regenerator-runtime'
 )
 
+type SwcOptimizerGlobals = {
+  typeofs?: Record<string, string>
+  envs?: Record<string, string>
+}
+
 function isTypeScriptFile(filename: string) {
   return filename.endsWith('.ts') || filename.endsWith('.tsx')
 }
@@ -167,7 +172,7 @@ function getBaseSWCOptions({
           simplify: false,
           globals: jest
             ? undefined
-            : {
+            : ({
                 typeofs: {
                   window: globalWindow ? 'object' : 'undefined',
                 },
@@ -175,7 +180,7 @@ function getBaseSWCOptions({
                   NODE_ENV: development ? '"development"' : '"production"',
                 },
                 // TODO: handle process.browser to match babel replacing as well
-              },
+              } as SwcOptimizerGlobals),
         },
         regenerator: {
           importPath: regeneratorRuntimePath,
@@ -371,7 +376,7 @@ export function getJestSWCOptions({
         ...baseOptions.jsc.transform.optimizer.globals?.envs,
         __NEXT_IMAGE_OPTS: JSON.stringify(imageConfig),
       },
-    } as any
+    }
   }
 
   const useCjsModules = shouldOutputCommonJs(filename)

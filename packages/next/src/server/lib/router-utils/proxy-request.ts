@@ -16,7 +16,7 @@ export async function proxyRequest(
   proxyTimeout?: number | null
 ) {
   const { query } = parsedUrl
-  delete (parsedUrl as any).query
+  delete (parsedUrl as { query?: unknown }).query
   parsedUrl.search = stringifyQuery(req as any, query)
 
   // Keep in mind that a WHATWG URL's hostname and the parsedUrl's hostname

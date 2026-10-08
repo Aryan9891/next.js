@@ -11,7 +11,7 @@ export function getCssError(
   if (
     !(
       (err.name === 'CssSyntaxError' || err.name === 'SyntaxError') &&
-      (err as any).stack === false &&
+      (err.stack as unknown) === false &&
       !(err instanceof SyntaxError)
     )
   ) {

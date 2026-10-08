@@ -99,10 +99,10 @@ export async function handler(
           },
           params,
           allowedRevalidateHeaderKeys: process.env
-            .__NEXT_ALLOWED_REVALIDATE_HEADERS as any as string[],
+            .__NEXT_ALLOWED_REVALIDATE_HEADERS as unknown as string[],
           multiZoneDraftMode: Boolean(process.env.__NEXT_MULTI_ZONE_DRAFT_MODE),
           trustHostHeader: process.env
-            .__NEXT_TRUST_HOST_HEADER as any as boolean,
+            .__NEXT_TRUST_HOST_HEADER as unknown as boolean,
           // TODO: get this from from runtime env so manifest
           // doesn't need to load
           previewProps,

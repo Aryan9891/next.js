@@ -8,7 +8,8 @@ export function isInstantValidationError(
     err &&
     typeof err === 'object' &&
     err instanceof Error &&
-    (err as any).digest === INSTANT_VALIDATION_ERROR_DIGEST
+    (err as Error & { digest?: unknown }).digest ===
+      INSTANT_VALIDATION_ERROR_DIGEST
   )
 }
 

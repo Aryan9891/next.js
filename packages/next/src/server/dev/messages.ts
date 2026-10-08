@@ -52,7 +52,7 @@ export function createBinaryHmrMessageData(
     }
     default: {
       throw new InvariantError(
-        `Invalid binary HMR message of type ${(message as any).type}`
+        `Invalid binary HMR message of type ${(message as { type: unknown }).type}`
       )
     }
   }

@@ -71,8 +71,14 @@ export async function transpileConfig({
         // Node.js v22.10.0+
         // Value is 'strip' or 'transform' based on how the feature is enabled.
         // https://nodejs.org/api/process.html#processfeaturestypescript
-        // TODO: Remove `as any` once we bump @types/node to v22.10.0+
-        if ((process.features as any).typescript) {
+        // TODO: Remove the cast once we bump @types/node to v22.10.0+
+        if (
+          (
+            process.features as typeof process.features & {
+              typescript?: 'strip' | 'transform' | false
+            }
+          ).typescript
+        ) {
           // Run import() here to catch errors and fallback to legacy resolution.
           return (await import(pathToFileURL(nextConfigPath).href)).default
         }

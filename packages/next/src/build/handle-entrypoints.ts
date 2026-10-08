@@ -134,7 +134,9 @@ export async function handleRouteType({
       break
     }
     default: {
-      throw new Error(`unknown route type ${(route as any).type} for ${page}`)
+      throw new Error(
+        `unknown route type ${(route as PageRoute | AppRoute).type} for ${page}`
+      )
     }
   }
 }

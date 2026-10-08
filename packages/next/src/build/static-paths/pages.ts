@@ -157,7 +157,7 @@ export async function buildPagesStaticPaths({
           params.hasOwnProperty(validParamKey) &&
           (paramValue === null ||
             paramValue === undefined ||
-            (paramValue as any) === false)
+            (paramValue as unknown) === false)
         ) {
           paramValue = []
         }

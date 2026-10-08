@@ -1,4 +1,4 @@
-import { timeoutsManager } from './resource-managers'
+import { timeoutsManager, type GlobalObject } from './resource-managers'
 
 describe('sandbox resource managers', () => {
   afterEach(() => {
@@ -6,7 +6,7 @@ describe('sandbox resource managers', () => {
   })
 
   it('does not retain one-shot timeouts after they run', async () => {
-    const context = {}
+    const context = {} as GlobalObject
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout')
 
     try {
@@ -14,7 +14,7 @@ describe('sandbox resource managers', () => {
         [0, 1, 2].map(
           () =>
             new Promise<void>((resolve) => {
-              timeoutsManager.add([context, resolve, 0] as any)
+              timeoutsManager.add([context, resolve, 0])
             })
         )
       )
@@ -30,9 +30,9 @@ describe('sandbox resource managers', () => {
   })
 
   it('clears timeouts when they are removed explicitly', () => {
-    const context = {}
+    const context = {} as GlobalObject
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout')
-    const timeout = timeoutsManager.add([context, () => {}, 1000] as any)
+    const timeout = timeoutsManager.add([context, () => {}, 1000])
 
     try {
       timeoutsManager.remove(timeout)
@@ -45,7 +45,7 @@ describe('sandbox resource managers', () => {
   })
 
   it('preserves timeout callback arguments that are functions', async () => {
-    const context = {}
+    const context = {} as GlobalObject
     const callbackArg = () => 'value'
     const callback = jest.fn(function (this: unknown, arg: () => string) {
       expect(this).toBe(context)
@@ -62,7 +62,7 @@ describe('sandbox resource managers', () => {
         },
         0,
         callbackArg,
-      ] as any)
+      ])
     })
 
     expect(callback).toHaveBeenCalledTimes(1)

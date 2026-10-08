@@ -292,7 +292,8 @@ export function getAppLoader() {
 
 export function getAppEntry(opts: Readonly<AppLoaderOptions>) {
   if (process.env.NEXT_RSPACK && process.env.BUILTIN_APP_LOADER) {
-    ;(opts as any).projectRoot = normalize(join(__dirname, '../../..'))
+    ;(opts as AppLoaderOptions & { projectRoot?: string }).projectRoot =
+      normalize(join(__dirname, '../../..'))
   }
   return {
     import: `${getAppLoader()}?${stringify(opts)}!`,

@@ -1,5 +1,6 @@
 import type { LoaderTree } from '../../server/lib/app-dir-module'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { FetchMetrics } from '../../server/base-http'
 import type { FallbackRouteParam } from '../static-paths/types'
 
 import {
@@ -243,7 +244,7 @@ export function createAppPageEntrypoint({
     const httpTarget = req.url
 
     const multiZoneDraftMode = process.env
-      .__NEXT_MULTI_ZONE_DRAFT_MODE as any as boolean
+      .__NEXT_MULTI_ZONE_DRAFT_MODE as unknown as boolean
 
     const prepareResult = await routeModule.prepare(req, res, {
       srcPage,
@@ -862,7 +863,7 @@ export function createAppPageEntrypoint({
         ))
 
       incrementalCache?.resetRequestCache()
-      ;(globalThis as any).__incrementalCache = incrementalCache
+      globalThis.__incrementalCache = incrementalCache
 
       const doRender = async ({
         span,
@@ -1036,7 +1037,7 @@ export function createAppPageEntrypoint({
               cachedNavigations:
                 nextConfig.experimental.cachedNavigations ?? false,
               clientTraceMetadata:
-                nextConfig.experimental.clientTraceMetadata || ([] as any),
+                nextConfig.experimental.clientTraceMetadata || [],
               clientParamParsingOrigins:
                 nextConfig.experimental.clientParamParsingOrigins,
               maxPostponedStateSizeBytes: parseMaxPostponedStateSize(
@@ -1070,7 +1071,9 @@ export function createAppPageEntrypoint({
 
         // Keep recovery output separate from successful response cache entries.
         if ('error' in result) {
-          ;(req as any).fetchMetrics = result.result.metadata.fetchMetrics
+          ;(
+            req as IncomingMessage & { fetchMetrics?: FetchMetrics }
+          ).fetchMetrics = result.result.metadata.fetchMetrics
           return result
         }
 
@@ -1106,7 +1109,9 @@ export function createAppPageEntrypoint({
         }
 
         // Pull any fetch metrics from the render onto the request.
-        ;(req as any).fetchMetrics = fetchMetrics
+        ;(
+          req as IncomingMessage & { fetchMetrics?: FetchMetrics }
+        ).fetchMetrics = fetchMetrics
 
         // we don't throw static to dynamic errors in dev as isSSG
         // is a best guess in dev since we don't have the prerender pass

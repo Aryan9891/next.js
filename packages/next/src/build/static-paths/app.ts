@@ -376,7 +376,7 @@ function validateParams(
         params.hasOwnProperty(key) &&
         (paramValue === null ||
           paramValue === undefined ||
-          (paramValue as any) === false)
+          (paramValue as unknown) === false)
       ) {
         paramValue = []
       }

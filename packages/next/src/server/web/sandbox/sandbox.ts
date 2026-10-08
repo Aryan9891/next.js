@@ -15,6 +15,7 @@ import {
 import {
   RouterServerContextSymbol,
   routerServerGlobal,
+  type RouterServerContext,
 } from '../../lib/router-utils/router-server-context'
 import type { EdgeHandler } from '../adapter'
 
@@ -88,9 +89,11 @@ export async function getRuntimeContext(
 
   // expose router server context for access to dev handlers like
   // logErrorWithOriginalStack
-  ;(runtime.context.globalThis as any as typeof routerServerGlobal)[
-    RouterServerContextSymbol
-  ] = routerServerGlobal[RouterServerContextSymbol]
+  ;(
+    runtime.context.globalThis as typeof runtime.context.globalThis & {
+      [RouterServerContextSymbol]?: RouterServerContext
+    }
+  )[RouterServerContextSymbol] = routerServerGlobal[RouterServerContextSymbol]
 
   if (params.serverComponentsHmrCache) {
     runtime.context.globalThis.__serverComponentsHmrCache =

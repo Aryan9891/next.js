@@ -67,9 +67,11 @@ const SYMBOL_MODIFY_COOKIE_VALUES = Symbol.for('next.mutated.cookies')
 export function getModifiedCookieValues(
   cookies: ResponseCookies
 ): ResponseCookie[] {
-  const modified: ResponseCookie[] | undefined = (cookies as unknown as any)[
-    SYMBOL_MODIFY_COOKIE_VALUES
-  ]
+  const modified: ResponseCookie[] | undefined = (
+    cookies as ResponseCookies & {
+      [SYMBOL_MODIFY_COOKIE_VALUES]?: ResponseCookie[]
+    }
+  )[SYMBOL_MODIFY_COOKIE_VALUES]
   if (!modified || !Array.isArray(modified) || modified.length === 0) {
     return []
   }

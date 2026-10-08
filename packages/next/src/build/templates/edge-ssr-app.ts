@@ -1,4 +1,5 @@
 import '../../server/web/globals'
+import type { ExperimentalConfig, I18NConfig } from '../../server/config-shared'
 import {
   adapter,
   type EdgeHandler,
@@ -207,8 +208,7 @@ async function requestHandler(
           nextConfig.experimental.durableUseCacheEntries
         ),
         cachedNavigations: nextConfig.experimental.cachedNavigations ?? false,
-        clientTraceMetadata:
-          nextConfig.experimental.clientTraceMetadata || ([] as any),
+        clientTraceMetadata: nextConfig.experimental.clientTraceMetadata || [],
         clientParamParsingOrigins:
           nextConfig.experimental.clientParamParsingOrigins,
         maxPostponedStateSizeBytes: parseMaxPostponedStateSize(
@@ -267,7 +267,7 @@ async function requestHandler(
     const headers = new Headers()
     finalStatus = metadata.statusCode || baseRes.statusCode || 200
     // Pull any fetch metrics from the render onto the request.
-    ;(req as any).fetchMetrics = metadata.fetchMetrics
+    req.fetchMetrics = metadata.fetchMetrics
 
     // Set content type
     const contentType = result.contentType || 'text/html; charset=utf-8'
@@ -460,15 +460,16 @@ export async function handler(
       headers: toNodeOutgoingHttpHeaders(request.headers),
       nextConfig: {
         basePath: process.env.__NEXT_BASE_PATH,
-        i18n: process.env.__NEXT_I18N_CONFIG as any,
+        i18n: process.env.__NEXT_I18N_CONFIG as unknown as I18NConfig,
         trailingSlash: Boolean(process.env.__NEXT_TRAILING_SLASH),
         experimental: {
-          cacheLife: process.env.__NEXT_CACHE_LIFE as any,
+          cacheLife: process.env
+            .__NEXT_CACHE_LIFE as unknown as ExperimentalConfig['cacheLife'],
           authInterrupts: Boolean(
             process.env.__NEXT_EXPERIMENTAL_AUTH_INTERRUPTS
           ),
           clientParamParsingOrigins: process.env
-            .__NEXT_CLIENT_PARAM_PARSING_ORIGINS as any,
+            .__NEXT_CLIENT_PARAM_PARSING_ORIGINS as unknown as ExperimentalConfig['clientParamParsingOrigins'],
         },
       },
       page: {

@@ -662,7 +662,9 @@ export function patchErrorInspectNodeJS(
     return workUnitAsyncStorage.exit(() => {
       const newError = sourceMapError(this, inspectOptions)
 
-      const originalCustomInspect = (newError as any)[inspectSymbol]
+      const originalCustomInspect = (
+        newError as Error & { [inspectSymbol]?: unknown }
+      )[inspectSymbol]
       // Prevent infinite recursion.
       // { customInspect: false } would result in `error.cause` not using our inspect.
       Object.defineProperty(newError, inspectSymbol, {
@@ -676,7 +678,8 @@ export function patchErrorInspectNodeJS(
           depth: getInspectDepth(newError, depth),
         })
       } finally {
-        ;(newError as any)[inspectSymbol] = originalCustomInspect
+        ;(newError as Error & { [inspectSymbol]?: unknown })[inspectSymbol] =
+          originalCustomInspect
       }
     })
   }
@@ -699,7 +702,9 @@ export function patchErrorInspectEdgeLite(
     return workUnitAsyncStorage.exit(() => {
       const newError = sourceMapError(this, {})
 
-      const originalCustomInspect = (newError as any)[inspectSymbol]
+      const originalCustomInspect = (
+        newError as Error & { [inspectSymbol]?: unknown }
+      )[inspectSymbol]
       // Prevent infinite recursion.
       Object.defineProperty(newError, inspectSymbol, {
         value: undefined,
@@ -709,7 +714,8 @@ export function patchErrorInspectEdgeLite(
       try {
         return format(newError)
       } finally {
-        ;(newError as any)[inspectSymbol] = originalCustomInspect
+        ;(newError as Error & { [inspectSymbol]?: unknown })[inspectSymbol] =
+          originalCustomInspect
       }
     })
   }

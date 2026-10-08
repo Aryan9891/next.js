@@ -1304,8 +1304,9 @@ export async function createCombinedPayloadAtDepth(
         instantConfig === true ||
         (typeof instantConfig === 'object' && instantConfig !== null)
       ) {
-        const rawFactory: unknown = (layoutOrPageMod as any)
-          .__debugCreateInstantConfigStack
+        const rawFactory: unknown = (
+          layoutOrPageMod as { __debugCreateInstantConfigStack?: unknown }
+        ).__debugCreateInstantConfigStack
         localCreateInstantStack =
           typeof rawFactory === 'function' ? (rawFactory as () => Error) : null
       }

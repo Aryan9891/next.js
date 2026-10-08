@@ -626,11 +626,11 @@ export class AppRouteRouteModule extends RouteModule<
         if (
           typeof prospectiveResult === 'object' &&
           prospectiveResult !== null &&
-          typeof (prospectiveResult as any).then === 'function'
+          typeof (prospectiveResult as { then?: unknown }).then === 'function'
         ) {
           // The handler returned a Thenable. We'll listen for rejections to determine
           // if the route is erroring for dynamic reasons.
-          ;(prospectiveResult as any as Promise<unknown>).then(
+          ;(prospectiveResult as Promise<unknown>).then(
             () => {},
             (err) => {
               if (prospectiveController.signal.aborted) {

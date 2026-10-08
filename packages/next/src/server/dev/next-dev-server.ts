@@ -849,7 +849,8 @@ export default class DevServer extends Server {
           const existingManifest: PrerenderManifest =
             JSON.parse(rawExistingManifest)
           for (const staticPath of value.staticPaths || []) {
-            existingManifest.routes[staticPath] = {} as any
+            existingManifest.routes[staticPath] =
+              {} as PrerenderManifest['routes'][string]
           }
 
           // Find the fallback route from the prerendered routes. This is

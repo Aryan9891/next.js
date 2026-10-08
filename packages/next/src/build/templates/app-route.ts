@@ -6,6 +6,7 @@ import {
 import { RouteKind } from '../../server/route-kind'
 import { patchFetch as _patchFetch } from '../../server/lib/patch-fetch'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { FetchMetrics } from '../../server/base-http'
 import {
   addRequestMeta,
   getRequestMeta,
@@ -129,7 +130,7 @@ export async function handler(
     srcPage = '/'
   }
   const multiZoneDraftMode = process.env
-    .__NEXT_MULTI_ZONE_DRAFT_MODE as any as boolean
+    .__NEXT_MULTI_ZONE_DRAFT_MODE as unknown as boolean
 
   const prepareResult = await routeModule.prepare(req, res, {
     srcPage,
@@ -237,7 +238,7 @@ export async function handler(
     ))
 
   incrementalCache?.resetRequestCache()
-  ;(globalThis as any).__incrementalCache = incrementalCache
+  globalThis.__incrementalCache = incrementalCache
 
   const context: AppRouteRouteHandlerContext = {
     params,
@@ -298,7 +299,8 @@ export async function handler(
           ? await routeModule.handle(nextReq, context)
           : await routeModule.prerender(nextReq, context)
 
-      ;(req as any).fetchMetrics = (context.renderOpts as any).fetchMetrics
+      ;(req as IncomingMessage & { fetchMetrics?: FetchMetrics }).fetchMetrics =
+        context.renderOpts.fetchMetrics
       let pendingWaitUntil = context.renderOpts.pendingWaitUntil
 
       // Attempt using provided waitUntil if available

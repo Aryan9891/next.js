@@ -1,5 +1,8 @@
 import type { SearchParams } from '../../server/request/search-params'
 
+// The fields React sets on a thenable once it has been tracked by `use()`.
+type FulfilledPromise<T> = Promise<T> & { status?: 'fulfilled'; value?: T }
+
 interface CacheLifetime {}
 const CachedSearchParams = new WeakMap<CacheLifetime, Promise<SearchParams>>()
 
@@ -14,8 +17,8 @@ function makeUntrackedSearchParams(
   const promise = Promise.resolve(underlyingSearchParams)
   // Mark it as fulfilled the way React does once it has tracked it, so `use()`
   // can unwrap it without suspending.
-  ;(promise as any).status = 'fulfilled'
-  ;(promise as any).value = underlyingSearchParams
+  ;(promise as FulfilledPromise<SearchParams>).status = 'fulfilled'
+  ;(promise as FulfilledPromise<SearchParams>).value = underlyingSearchParams
   CachedSearchParams.set(underlyingSearchParams, promise)
 
   return promise

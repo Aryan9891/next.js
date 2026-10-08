@@ -483,7 +483,9 @@ export async function handleRouteType({
       break
     }
     default: {
-      throw new Error(`unknown route type ${(route as any).type} for ${page}`)
+      throw new Error(
+        `unknown route type ${(route as { type: unknown }).type} for ${page}`
+      )
     }
   }
 }
@@ -783,7 +785,7 @@ export async function handleEntrypoints({
 
       if (dev && middlewareConfig) {
         dev.serverFields.middleware = {
-          match: null as any,
+          match: null,
           page: '/',
           matchers: middlewareConfig.matchers,
         }

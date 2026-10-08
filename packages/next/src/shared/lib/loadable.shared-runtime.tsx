@@ -94,7 +94,7 @@ function createLoadableComponent(loadFn: any, options: any) {
   if (!initialized && typeof window !== 'undefined') {
     // require.resolveWeak check is needed for environments that don't have it available like Jest
     const moduleIds =
-      opts.webpack && typeof (require as any).resolveWeak === 'function'
+      opts.webpack && typeof require.resolveWeak === 'function'
         ? opts.webpack()
         : opts.modules
     if (moduleIds) {
@@ -122,7 +122,7 @@ function createLoadableComponent(loadFn: any, options: any) {
   function LoadableComponent(props: any, ref: any) {
     useLoadableModule()
 
-    const state = (React as any).useSyncExternalStore(
+    const state = React.useSyncExternalStore<LoadableState>(
       subscription.subscribe,
       subscription.getCurrentValue,
       subscription.getCurrentValue
@@ -157,6 +157,15 @@ function createLoadableComponent(loadFn: any, options: any) {
   LoadableComponent.displayName = 'LoadableComponent'
 
   return React.forwardRef(LoadableComponent)
+}
+
+// The snapshot `LoadableSubscription` exposes via `getCurrentValue()`.
+type LoadableState = {
+  pastDelay: boolean
+  timedOut: boolean
+  loading?: boolean
+  error?: unknown
+  loaded?: unknown
 }
 
 class LoadableSubscription {

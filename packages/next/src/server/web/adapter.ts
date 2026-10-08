@@ -229,10 +229,10 @@ export async function adapter(
     // If we are inside of the next start sandbox
     // leverage the shared instance if not we need
     // to create a fresh cache instance each time
-    !(globalThis as any).__incrementalCacheShared &&
-    (params as any).IncrementalCache
+    !globalThis.__incrementalCacheShared &&
+    params.IncrementalCache
   ) {
-    ;(globalThis as any).__incrementalCache = new (
+    globalThis.__incrementalCache = new (
       params as {
         IncrementalCache: typeof import('../lib/incremental-cache').IncrementalCache
       }
@@ -241,7 +241,10 @@ export async function adapter(
       minimalMode: process.env.NODE_ENV !== 'development',
       fetchCacheKeyPrefix: process.env.__NEXT_FETCH_CACHE_KEY_PREFIX,
       dev: process.env.NODE_ENV === 'development',
-      requestHeaders: params.request.headers as any,
+      requestHeaders: params.request.headers as Record<
+        string,
+        undefined | string | string[]
+      >,
 
       previewProps: getEdgePreviewProps(),
       prerenderManifest: {

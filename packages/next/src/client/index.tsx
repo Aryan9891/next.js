@@ -60,6 +60,13 @@ declare global {
     /* prod */
     __NEXT_DATA__: NEXT_DATA
     __NEXT_P: any[]
+
+    /** @internal Sets the bundler's runtime public path (see client/webpack.ts). */
+    __next_set_public_path__?: (path: string) => void
+    /** @internal */
+    __webpack_hash__?: string
+    /** @internal Turbopack page chunk loader used by the page loader. */
+    __turbopack_load_page_chunks__?: (page: string, chunksData: any) => void
   }
 }
 type RenderRouteInfo = PrivateRouteInfo & {
@@ -139,7 +146,6 @@ class Container extends React.Component<{
             ),
           asPath,
           {
-            // @ts-ignore
             // WARNING: `_h` is an internal option for handing Next.js
             // client-side hydration. Your app should _never_ use this property.
             // It may change at any time without notice.
@@ -209,7 +215,7 @@ export async function initialize(opts: { devClient?: any } = {}): Promise<{
   const prefix: string = initialData.assetPrefix || ''
   // With dynamic assetPrefix it's no longer possible to set assetPrefix at the build time
   // So, this is how we do it in the client side at runtime
-  ;(self as any).__next_set_public_path__(`${prefix}/_next/`)
+  self.__next_set_public_path__!(`${prefix}/_next/`)
 
   asPath = getURL()
 
@@ -383,7 +389,7 @@ function renderError(renderErrorProps: RenderErrorProps): Promise<any> {
         ? import('../pages/_error')
             .then((errorModule) => {
               return import('../pages/_app').then((appModule) => {
-                App = appModule.default as any as AppComponent
+                App = appModule.default as AppComponent
                 renderErrorProps.App = App
                 return errorModule
               })
@@ -578,7 +584,7 @@ function renderReactElement(
     // TODO: Remove shouldHydrate variable when React 18 is stable as it can depend on `reactRoot` existing
     shouldHydrate = false
   } else {
-    const startTransition = (React as any).startTransition
+    const startTransition = React.startTransition
     startTransition(() => {
       reactRoot.render(reactEl)
     })

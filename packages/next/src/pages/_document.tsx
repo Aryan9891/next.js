@@ -1055,4 +1055,8 @@ const InternalFunctionDocument: DocumentType =
       </Html>
     )
   }
-;(Document as any)[NEXT_BUILTIN_DOCUMENT] = InternalFunctionDocument
+;(
+  Document as typeof Document & {
+    [NEXT_BUILTIN_DOCUMENT]?: DocumentType
+  }
+)[NEXT_BUILTIN_DOCUMENT] = InternalFunctionDocument

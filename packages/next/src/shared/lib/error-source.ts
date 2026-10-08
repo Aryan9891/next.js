@@ -1,7 +1,10 @@
 const symbolError = Symbol.for('NextjsError')
 
+// An error that may have been tagged by `decorateServerError`.
+type DecoratedError = Error & { [symbolError]?: ErrorSourceType }
+
 export function getErrorSource(error: Error): 'server' | 'edge-server' | null {
-  return (error as any)[symbolError] || null
+  return (error as DecoratedError)[symbolError] || null
 }
 
 export type ErrorSourceType = 'edge-server' | 'server'

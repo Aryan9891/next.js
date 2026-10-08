@@ -9,7 +9,11 @@ export class OptionalPeerDependencyResolverPlugin {
       'OptionalPeerDependencyResolverPlugin',
       (request, resolveContext, callback) => {
         // if we've already recursed into this plugin, we want to skip it
-        if ((request as any)[pluginSymbol]) {
+        if (
+          (request as typeof request & { [pluginSymbol]?: boolean })[
+            pluginSymbol
+          ]
+        ) {
           return callback()
         }
 
@@ -31,7 +35,7 @@ export class OptionalPeerDependencyResolverPlugin {
           target,
           // when we call doResolve again, we need to make sure we don't
           // recurse into this plugin again
-          { ...request, [pluginSymbol]: true } as any,
+          { ...request, [pluginSymbol]: true } as typeof request,
           null,
           resolveContext,
           (err, result) => {

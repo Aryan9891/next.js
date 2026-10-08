@@ -27,9 +27,15 @@ const FAST_SET_IMMEDIATE_ORIGINALS_KEY = Symbol.for(
   'next.fast-set-immediate.originals'
 )
 
+type FastSetImmediateGlobal = typeof globalThis & {
+  [FAST_SET_IMMEDIATE_ORIGINALS_KEY]?: FastSetImmediateOriginals
+}
+
 // Re-evaluations in dev should always use the same base/original functions.
-const originals = ((globalThis as any)[FAST_SET_IMMEDIATE_ORIGINALS_KEY] ??
-  ((globalThis as any)[FAST_SET_IMMEDIATE_ORIGINALS_KEY] = {
+const originals = ((globalThis as FastSetImmediateGlobal)[
+  FAST_SET_IMMEDIATE_ORIGINALS_KEY
+] ??
+  ((globalThis as FastSetImmediateGlobal)[FAST_SET_IMMEDIATE_ORIGINALS_KEY] = {
     setImmediate: globalThis.setImmediate,
     clearImmediate: globalThis.clearImmediate,
     nextTick: process.nextTick,

@@ -184,6 +184,14 @@ import {
   computeLegacyCacheBustingSearchParam,
 } from '../shared/lib/router/utils/cache-busting-search-param'
 
+declare global {
+  /**
+   * Asset suffix (e.g. `?dpl=...`) appended by Turbopack-compiled code.
+   * @internal
+   */
+  var NEXT_CLIENT_ASSET_SUFFIX: string | undefined
+}
+
 export type FindComponentsResult<
   NextModule extends GenericComponentMod = GenericComponentMod,
 > = {
@@ -431,7 +439,7 @@ export default abstract class Server<
     | ServerComponentsHmrCache
     | undefined {
     return this.nextConfig.experimental.serverComponentsHmrCache
-      ? (globalThis as any).__serverComponentsHmrCache
+      ? globalThis.__serverComponentsHmrCache
       : undefined
   }
 
@@ -519,7 +527,7 @@ export default abstract class Server<
       this.deploymentId = id
       process.env.NEXT_DEPLOYMENT_ID = id
     }
-    ;(globalThis as any).NEXT_CLIENT_ASSET_SUFFIX =
+    globalThis.NEXT_CLIENT_ASSET_SUFFIX =
       this.nextConfig.supportsImmutableAssets || !this.deploymentId
         ? ''
         : `?dpl=${this.deploymentId}`
@@ -1553,7 +1561,8 @@ export default abstract class Server<
       // be passed down for edge functions and the fetch disk
       // cache can be leveraged locally
       if (
-        !(this.serverOptions as any).webServerConfig &&
+        !(this.serverOptions as { webServerConfig?: unknown })
+          .webServerConfig &&
         !getRequestMeta(req, 'incrementalCache')
       ) {
         const incrementalCache = await this.getIncrementalCache({
@@ -1564,7 +1573,7 @@ export default abstract class Server<
         addRequestMeta(req, 'incrementalCache', incrementalCache)
         // This is needed for pages router to leverage unstable_cache
         // TODO: re-work this handling to not use global and use a AsyncStore
-        ;(globalThis as any).__incrementalCache = incrementalCache
+        globalThis.__incrementalCache = incrementalCache
       }
 
       // set server components HMR cache to request meta so it can be passed
@@ -1667,14 +1676,14 @@ export default abstract class Server<
         if (finished) return
 
         const err = new Error()
-        ;(err as any).result = {
+        ;(err as Error & { result?: { response: Response } }).result = {
           response: new Response(null, {
             headers: {
               'x-middleware-next': '1',
             },
           }),
         }
-        ;(err as any).bubble = true
+        ;(err as Error & { bubble?: boolean }).bubble = true
         throw err
       }
 
@@ -2533,7 +2542,7 @@ export default abstract class Server<
       !!(
         getRequestMeta(req, 'isNextDataReq') ||
         (req.headers['x-nextjs-data'] &&
-          (this.serverOptions as any).webServerConfig)
+          (this.serverOptions as { webServerConfig?: unknown }).webServerConfig)
       ) &&
       (isSSG || hasServerProps)
 
@@ -2925,7 +2934,7 @@ export default abstract class Server<
             },
             set(target: any, prop, value) {
               if (prop === 'fetchMetrics') {
-                ;(req as any).fetchMetrics = value
+                req.fetchMetrics = value
               }
               target[prop] = value
               return true

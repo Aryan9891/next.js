@@ -34,7 +34,14 @@ class FakeAsyncLocalStorage<Store extends {}>
 }
 
 const maybeGlobalAsyncLocalStorage =
-  typeof globalThis !== 'undefined' && (globalThis as any).AsyncLocalStorage
+  typeof globalThis !== 'undefined' &&
+  (
+    globalThis as typeof globalThis & {
+      // `bind` is typed like `FakeAsyncLocalStorage.bind` so `bindSnapshot`
+      // can pass an unconstrained `T`.
+      AsyncLocalStorage?: typeof AsyncLocalStorage & { bind<T>(fn: T): T }
+    }
+  ).AsyncLocalStorage
 
 export function createAsyncLocalStorage<
   Store extends {},

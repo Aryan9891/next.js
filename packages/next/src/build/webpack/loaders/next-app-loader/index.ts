@@ -899,7 +899,7 @@ const nextAppLoader: AppLoader = async function nextAppLoader() {
     delete FILE_TYPES['global-not-found']
   }
 
-  const buildInfo = getModuleBuildInfo((this as any)._module)
+  const buildInfo = getModuleBuildInfo(this._module!)
   const collectedDeclarations: [string, string][] = []
 
   // Use the page from loaderOptions directly instead of deriving it from name.

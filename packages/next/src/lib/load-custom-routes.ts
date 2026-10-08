@@ -655,7 +655,7 @@ async function loadRewrites(config: NextConfig) {
     afterFiles = _rewrites.afterFiles || []
     fallback = _rewrites.fallback || []
   } else {
-    afterFiles = _rewrites as any
+    afterFiles = _rewrites as Rewrite[]
   }
   // check before we process the routes and after to ensure
   // they are still valid

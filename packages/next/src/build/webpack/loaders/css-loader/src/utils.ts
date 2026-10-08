@@ -22,7 +22,7 @@ const matchNativeWin32Path = /^[A-Z]:[/\\]|^\\\\/i
 
 function unescape(str: string) {
   return str.replace(unescapeRegExp, (_, escaped, escapedWhitespace) => {
-    const high = (`0x${escaped}` as any) - 0x10000
+    const high = (`0x${escaped}` as unknown as number) - 0x10000
 
     // NaN means non-codepoint
     // Workaround erroneous numeric interpretation of +"0x"

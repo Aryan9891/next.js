@@ -6,6 +6,9 @@ import {
   wellKnownProperties,
 } from '../../shared/lib/utils/reflect-utils'
 
+// The fields React sets on a thenable once it has been tracked by `use()`.
+type FulfilledPromise<T> = Promise<T> & { status?: 'fulfilled'; value?: T }
+
 interface CacheLifetime {}
 const CachedParams = new WeakMap<CacheLifetime, Promise<Params>>()
 
@@ -58,8 +61,8 @@ function makeDynamicallyTrackedParamsWithDevWarnings(
   // Mark it as fulfilled the way React does once it has tracked it, so `use()`
   // can unwrap it without suspending. This goes through the proxy, like React
   // does, so a param named `value` isn't reported as a sync access.
-  ;(proxiedPromise as any).status = 'fulfilled'
-  ;(proxiedPromise as any).value = underlyingParams
+  ;(proxiedPromise as FulfilledPromise<Params>).status = 'fulfilled'
+  ;(proxiedPromise as FulfilledPromise<Params>).value = underlyingParams
 
   CachedParams.set(underlyingParams, proxiedPromise)
   return proxiedPromise
