@@ -279,18 +279,14 @@ describe.each([
       if (isNextDeploy) {
         // Deployed functions register instrumentation lazily, in the first
         // request they handle: the lifecycle spans are children of that
-        // request's span (a route or page entrypoint), of the root inserted by
-        // the middleware adapter (a Node.js middleware entrypoint), or of the
-        // incoming / platform span (started outside this instance), in its
-        // trace.
+        // request's span (a route or page entrypoint) or of the middleware
+        // span (a Node.js middleware entrypoint), in its trace.
         expect(span.traceId).toMatch(TRACE_ID)
         expect(span.parentSpanId).toMatch(SPAN_ID)
         expect(span.parentTraceId).toBe(span.traceId)
-        if (span.parentType !== null) {
-          expect(['BaseServer.handleRequest', 'Next.request']).toContain(
-            span.parentType
-          )
-        }
+        expect(['BaseServer.handleRequest', 'Middleware.execute']).toContain(
+          span.parentType
+        )
       } else {
         // `next start` / `next dev` register instrumentation at startup,
         // outside of any request, so the lifecycle spans are roots.

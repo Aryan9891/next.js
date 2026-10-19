@@ -103,7 +103,7 @@ export type AdapterOptions = {
   bypassNextUrl?: boolean
   /**
    * When the Node.js middleware entrypoint registered `instrumentation.ts` for
-   * this request: emits its lifecycle spans, in the request's trace.
+   * this request: emits its lifecycle spans, inside the middleware span.
    */
   emitInstrumentationSpans?: () => void
   /**
@@ -327,9 +327,9 @@ export async function adapter(
         // siblings: they share the currently active context as their parent.
         // That is the request's `traceparent` (incoming, or written by
         // next-server's middleware-invoke pass), an active host span, or the
-        // root span inserted below. The lifecycle spans of `instrumentation.ts`,
-        // when this request registered it, are children of that parent too.
-        params.emitInstrumentationSpans?.()
+        // root span inserted below. When this request registered
+        // `instrumentation.ts`, its lifecycle spans are children of the
+        // middleware span, which is backdated to cover registration.
         const receivedHeaders = new Headers(request.headers)
         forwardedTraceContext = getSharedParentTraceContext(
           receivedHeaders,
@@ -344,12 +344,16 @@ export async function adapter(
           MiddlewareSpan.execute,
           {
             spanName: `middleware ${request.method}`,
+            startTime: params.emitInstrumentationSpans
+              ? params.requestStartTime
+              : undefined,
             attributes: {
               'http.target': request.nextUrl.pathname,
               'http.method': request.method,
             },
           },
           async () => {
+            params.emitInstrumentationSpans?.()
             try {
               const onUpdateCookies = (cookies: Array<string>) => {
                 cookiesFromResponse = cookies
